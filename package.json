@@ -5,7 +5,7 @@
   "repository": "https://github.com/Izone-hub/Izone-Automated-Project-Management-Tool-FE.git",
   "author": "bir-dv <brukjoseph@gmail.com>",
   "license": "MIT",
-    "private": true,
+  "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
