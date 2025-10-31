@@ -24,3 +24,16 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+class OrganizationBase(BaseModel):
+    name: str
+    description: str | None = None
+
+class OrganizationCreate(OrganizationBase):
+    pass
+
+class OrganizationResponse(OrganizationBase):
+    id: int
+    owner_id: int
+
+    class Config:
+        orm_mode = True

@@ -1,4 +1,4 @@
-# app/auth/security.py
+# app/auth/security.py password security and JWT token management.
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
