@@ -13,3 +13,4 @@ class Organization(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="organizations")
+    projects = relationship("Project", back_populates="organization", cascade="all, delete")
