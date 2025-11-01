@@ -1,12 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.auth.auth import router as auth_router
+from app.db.session import engine
+from app.db.base import Base
+from app.projects.routes import router as project_router
+from app.organizations.routes import router as organization_router
+
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# Allow requests from your Next.js app
+app.include_router(auth_router)
+app.include_router(organization_router)
+app.include_router(project_router)
+
+
+
 origins = [
-    "http://localhost:3000",  # Frontend dev server
-    "https://your-production-domain.com"
+    "http://localhost:3000", 
+    "https://your-production-domain.com",
 ]
 
 app.add_middleware(
@@ -16,6 +29,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 def read_root():
