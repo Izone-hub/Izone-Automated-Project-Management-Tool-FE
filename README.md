@@ -145,9 +145,98 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 **backend/.env**
 ```
-DATABASE_URL=postgresql://user:password@db:5432/projectdb
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=your_database_name
 SECRET_KEY=your_secret_key
 ```
+
+---
+
+## 🗄️ Database Migrations
+
+This project uses **Alembic** for database migrations. Follow these steps when you need to update your database schema.
+
+### Prerequisites
+
+- Make sure your virtual environment is activated
+- Ensure your database connection is configured in `.env` file
+- Database server is running
+
+### 📝 Step-by-Step Migration Guide
+
+#### 1. Update Your Model
+
+Edit your SQLAlchemy model file (e.g., `apps/backend/app/models/user.py`) to add, modify, or remove fields:
+
+#### 2. Generate Migration
+
+Navigate to the backend directory and generate a new migration:
+
+```bash
+cd apps/backend
+source venv/bin/activate  # On Linux/Mac
+# or
+venv\Scripts\activate     # On Windows
+
+alembic revision --autogenerate -m "describe your change"
+```
+
+**Example:**
+```bash
+alembic revision --autogenerate -m "add full_name to users table"
+```
+
+This creates a new migration file in `migrations/versions/` with a timestamp and description.
+
+#### 3. Review the Generated Migration
+
+Always review the generated migration file before applying it:
+
+- Check the file path: `migrations/versions/XXXXX_describe_your_change.py`
+- Verify:
+  - Column types match your model definition
+  - Constraints (nullable, unique, etc.) are correct
+  - The migration matches your intended changes
+
+#### 4. Apply the Migration
+
+Run the migration to update your database:
+
+```bash
+alembic upgrade head
+```
+
+This applies all pending migrations to your database.
+
+### 🔧 Useful Migration Commands
+
+| Command | Description |
+|---------|-------------|
+| `alembic current` | Show the current migration version |
+| `alembic history` | View all migration history |
+| `alembic upgrade head` | Apply all pending migrations |
+| `alembic downgrade -1` | Rollback the last migration |
+| `alembic revision --autogenerate -m "message"` | Generate a new migration |
+
+### ⚠️ Important Notes
+
+- **Always review** auto-generated migrations before applying
+- **Test migrations** on a development database first
+- **Commit migration files** to version control
+- **Use descriptive messages** for migration descriptions
+- **Don't edit** existing migrations that have been applied to production
+
+### 🐛 Troubleshooting
+
+If you encounter issues:
+
+1. **Check database connection**: Verify your `.env` file has correct database credentials
+2. **Check model imports**: Ensure all models are imported in `app/db/base.py`
+3. **Review migration file**: Check for syntax errors in the generated migration
+4. **Database state**: Use `alembic current` to verify your database state matches expectations
 
 ---
 
