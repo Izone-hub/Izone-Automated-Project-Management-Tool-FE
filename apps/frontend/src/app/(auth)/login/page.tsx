@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from "react";
@@ -27,9 +28,13 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data);
+      // Only email and password are sent
+      await login({
+        email: data.email,
+        password: data.password,
+      });
     } catch (error) {
-      // Error is handled by useAuth hook
+      // Error handled in useAuth
     }
   };
 
@@ -98,7 +103,7 @@ export default function LoginPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between">
+           <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Checkbox id="remember" />
                 <Label htmlFor="remember" className="cursor-pointer">

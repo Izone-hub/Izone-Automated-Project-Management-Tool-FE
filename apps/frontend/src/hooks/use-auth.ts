@@ -5,8 +5,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginCredentials, SignupData, AuthResponse } from '@/lib/api/auth';
-import { mockAuthApi } from '@/lib/api/auth'; // Switch to authApi when backend is ready
 import { toast } from 'sonner';
+import { authApi } from '@/lib/api/auth';
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +18,7 @@ export function useAuth() {
     setError(null);
 
     try {
-      const response: AuthResponse = await mockAuthApi.login(credentials);
+      const response: AuthResponse = await authApi.login(credentials);
       
       // Store token in localStorage (consider using httpOnly cookies in production)
       if (response.access_token) {
@@ -47,7 +47,7 @@ export function useAuth() {
     setError(null);
 
     try {
-      const response: AuthResponse = await mockAuthApi.signup(data);
+      const response: AuthResponse = await authApi.signup(data);
       
       // Store token in localStorage
       if (response.access_token) {

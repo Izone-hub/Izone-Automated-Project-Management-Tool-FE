@@ -11,6 +11,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import { signupSchema, type SignupFormData } from "@/lib/validations/auth";
 import { useAuth } from "@/hooks/use-auth";
+import { SignupData } from "@/lib/api/auth";
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,8 +27,21 @@ export default function SignupPage() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    try {
-      const { confirmPassword, ...signupData } = data;
+    try {   const { firstName, lastName, email, password } = data;
+
+     // Check the values before sending
+    console.log('Signup data being sent:', {
+      email,
+      full_name: `${firstName} ${lastName}`,
+      password, // Make sure this is defined
+    });
+
+    const signupData: SignupData = {
+      email,
+      Full_Name: `${firstName} ${lastName}`,
+      password, 
+    };
+       
       await signup(signupData);
     } catch (error) {
       // Error is handled by useAuth hook

@@ -11,10 +11,9 @@ export interface LoginCredentials {
 }
 
 export interface SignupData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
+   email: string;
+   Full_Name: string;
+   password: string;
 }
 
 export interface AuthResponse {
@@ -23,8 +22,7 @@ export interface AuthResponse {
   user?: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    full_name: string;
   };
 }
 
@@ -49,26 +47,57 @@ export const authApi = {
     });
 
     if (!response.ok) {
-      const error: ApiError = await response.json();
-      throw new Error(error.message || 'Login failed');
+      // Try to parse the JSON body and prefer FastAPI's `detail` field
+      let body: any = {};
+      try {
+        body = await response.json();
+      } catch (e) {
+        // If JSON parsing fails, capture raw text for debugging
+        const raw = await response.text().catch(() => null);
+        console.error('login error raw response:', { status: response.status, raw });
+        const message = raw || 'Login failed';
+        throw new Error(message);
+      }
+      const message = body?.detail || body?.message || 'Login failed';
+      // log parsed body for debugging
+      console.error('login error body:', { status: response.status, body });
+      throw new Error(message);
     }
 
     return response.json();
   },
 
   async signup(data: SignupData): Promise<AuthResponse> {
+      //  Combine first and last name into full_name for backend
+  const payload = {
+    email: data.email,
+    full_name: data.Full_Name,
+    password: data.password,
+  };
     // TODO: Replace with actual API call
-    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      const error: ApiError = await response.json();
-      throw new Error(error.message || 'Signup failed');
+      // Prefer FastAPI's `detail` when available so the UI shows a useful message
+      let body: any = {};
+      try {
+        body = await response.json();
+      } catch (e) {
+        // If JSON parsing fails, capture raw text for debugging
+        const raw = await response.text().catch(() => null);
+        console.error('signup error raw response:', { status: response.status, raw });
+        const message = raw || 'Signup failed';
+        throw new Error(message);
+      }
+      const message = body?.detail || body?.message || 'Signup failed';
+      console.error('signup error body:', { status: response.status, body });
+      throw new Error(message);
     }
 
     return response.json();
@@ -79,39 +108,37 @@ export const authApi = {
  * Mock implementation for development
  * Remove when real API is integrated
  */
-export const mockAuthApi = {
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+// export const mockAuthApi = {
+//   async login(credentials: LoginCredentials): Promise<AuthResponse> {
+//     // Simulate API delay
+//     await new Promise((resolve) => setTimeout(resolve, 1000));
     
-    // Mock successful response
-    return {
-      access_token: 'mock-token',
-      token_type: 'bearer',
-      user: {
-        id: '1',
-        email: credentials.email,
-        firstName: 'John',
-        lastName: 'Doe',
-      },
-    };
-  },
+//     // Mock successful response
+//     return {
+//       access_token: 'mock-token',
+//       token_type: 'bearer',
+//       user: {
+//         id: '1',
+//         email: credentials.email,
+//       full_name: 'John Doe',
+//       },
+//     };
+//   },
 
-  async signup(data: SignupData): Promise<AuthResponse> {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+//   async signup(data: SignupData): Promise<AuthResponse> {
+//     // Simulate API delay
+//     await new Promise((resolve) => setTimeout(resolve, 1000));
     
-    // Mock successful response
-    return {
-      access_token: 'mock-token',
-      token_type: 'bearer',
-      user: {
-        id: '1',
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-      },
-    };
-  },
-};
+//     // Mock successful response
+//     return {
+//       access_token: 'mock-token',
+//       token_type: 'bearer',
+//       user: {
+//         id: '1',
+//         email: data.email,
+//          full_name:data.full_name,
+//       },
+//     };
+//   },
+// };
 
