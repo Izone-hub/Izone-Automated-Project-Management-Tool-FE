@@ -12,11 +12,13 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
+
 app.include_router(auth_router)
 app.include_router(organization_router.router)
 
 
 # Configure CORS
+
 origins = [
     "http://localhost:3000", 
     "https://your-production-domain.com",
@@ -30,8 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(auth_router)
+
 
 
 @app.get("/")

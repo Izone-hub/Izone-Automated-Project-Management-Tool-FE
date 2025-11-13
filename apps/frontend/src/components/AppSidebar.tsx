@@ -1,6 +1,5 @@
-const AppSidebar=() => {
-    return(
-        <div className=''>AppSidebar</div>
+const AppSidebar =() => {
+    return (
+        <div className=''>AppS</div>
     )
 }
-export default AppSidebar
