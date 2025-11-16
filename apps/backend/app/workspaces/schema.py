@@ -1,4 +1,3 @@
-# schemas/organization_schema.py
 from pydantic import BaseModel, Field, ConfigDict,  field_validator
 from typing import Optional
 from datetime import datetime
@@ -20,28 +19,28 @@ class OrgBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
 
-    @validator("name")
+    @field_validator("name")
     def strip_name(cls, v):
         return v.strip()
 
 
 # ---------- Create ----------
-class OrganizationCreate(OrgBase):
+class WorkspaceCreate(OrgBase):
     owner_id: UUID                    # frontend can send, backend overrides with JWT
 
 
 # ---------- Update ----------
-class OrganizationUpdate(BaseModel):
+class WorkspaceUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
 
-    @validator("name")
+    @field_validator("name")
     def strip_name(cls, v):
         return v.strip() if v else None
 
 
 # ---------- Out ----------
-class OrganizationOut(OrgBase):
+class WorkspaceOut(OrgBase):
     id: UUID
     owner_id: UUID
     created_at: datetime
