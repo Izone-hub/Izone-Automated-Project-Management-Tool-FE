@@ -4,6 +4,7 @@ from .auth.auth import router as auth_router
 from .db.session import engine
 from .db.base import Base
 from .workspaces import routes as workspace_router
+from .projects import routes as project_router
 
 
 
@@ -15,6 +16,7 @@ app = FastAPI()
 
 app.include_router(auth_router)
 app.include_router(workspace_router.router)
+app.include_router(project_router.router)
 
 
 # Configure CORS
