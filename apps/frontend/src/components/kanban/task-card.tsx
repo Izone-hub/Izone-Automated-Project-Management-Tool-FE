@@ -210,7 +210,7 @@ export function TaskCard({ task, onStatusChange, onTaskUpdate, onTaskDelete }: T
         </div>
       </div>
 
-      {/* Card Sidebar */}
+      {/* Card Sidebar - Enhanced Version */}
       <CardSidebar
         task={task}
         isOpen={showSidebar}
