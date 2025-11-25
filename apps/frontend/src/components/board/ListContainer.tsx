@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { BoardWithDetails } from '@/types';
 import { ListComponent } from './List';
 import { useList } from '@/hooks/useLists';
@@ -12,71 +11,114 @@ interface ListContainerProps {
 }
 
 export function ListContainer({ board, onRefresh }: ListContainerProps) {
-  const [isAddingList, setIsAddingList] = useState(false);
-  const [newListTitle, setNewListTitle] = useState('');
-  // Start by hiding lists (so only the AddList pill is visible for new boards).
-  // After the user creates a list we switch to the full lists view.
-  const [showLists, setShowLists] = useState<boolean>(false);
-  const { createList, isLoading } = useList();
+  const { createList } = useList();
   const visibleLists = board.lists ? board.lists.filter(l => !l.isDefault) : [];
 
-  const handleAddList = async () => {
-    if (!newListTitle.trim()) return;
-
+  const handleCreateList = async (title: string) => {
     try {
       await createList({
-        title: newListTitle.trim(),
+        title: title.trim(),
         boardId: board.id,
-        position: board.lists.length,
+        position: visibleLists.length,
       });
-      setNewListTitle('');
-      setIsAddingList(false);
-      setShowLists(true);
-    } catch (error) {
-      console.error('Failed to create list:', error);
+      
+      if (onRefresh) {
+        try { 
+          await onRefresh(); 
+        } catch (e) { 
+          console.error('Refresh failed:', e);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to create list:', err);
+      throw err;
     }
   };
 
   return (
-    // Make the lists area span the available space and allow horizontal scrolling
-    // so the background image can show full-bleed behind it.
-    <div className="flex-1 overflow-x-auto">
-      <div className="flex items-start gap-4 px-6 py-6 min-h-[calc(100vh-6rem)]">
-        {/* Always show the AddList pill as the first column (left-most) */}
+    <div className="flex-1 overflow-x-auto w-full">
+      <div className="flex items-start gap-4 px-6 py-6 min-h-[calc(100vh-6rem)] min-w-max">
+        {/* Always show existing lists first */}
+        {visibleLists.map((list) => (
+          <ListComponent key={list.id} list={list} onRefresh={onRefresh} />
+        ))}
+        
+        {/* AddList stays on the right - full width when empty, pill when lists exist */}
         <div className="shrink-0">
           <AddList
-            fullWidth={!showLists}
-            onCreateList={async (title: string) => {
-              try {
-                await createList({
-                  title,
-                  boardId: board.id,
-                  position: visibleLists.length,
-                });
-                // After creating, switch to full lists view and refresh
-                setShowLists(true);
-                if (onRefresh) {
-                  try { await onRefresh(); } catch (e) { /* ignore */ }
-                }
-              } catch (err) {
-                console.error('Failed to create list from AddList component', err);
-              }
-            }}
+            fullWidth={visibleLists.length === 0}
+            onCreateList={handleCreateList}
           />
         </div>
-
-        {/* Render existing lists (full board view) when enabled */}
-        {showLists && (
-          <>
-            {visibleLists.map((list) => (
-              <ListComponent key={list.id} list={list} onRefresh={onRefresh} />
-            ))}
-          </>
-        )}
       </div>
     </div>
   );
 }
+
+
+
+
+// 'use client';
+
+// import { BoardWithDetails } from '@/types';
+// import { ListComponent } from './List';
+// import { useList } from '@/hooks/useLists';
+// import { AddList } from './AddList';
+
+// interface ListContainerProps {
+//   board: BoardWithDetails;
+//   onRefresh?: () => Promise<void> | void;
+// }
+
+// export function ListContainer({ board, onRefresh }: ListContainerProps) {
+//   const { createList } = useList();
+//   const visibleLists = board.lists ? board.lists.filter(l => !l.isDefault) : [];
+
+//   const handleCreateList = async (title: string) => {
+//     try {
+//       await createList({
+//         title: title.trim(),
+//         boardId: board.id,
+//         position: visibleLists.length,
+//       });
+      
+//       if (onRefresh) {
+//         try { 
+//           await onRefresh(); 
+//         } catch (e) { 
+//           console.error('Refresh failed:', e);
+//         }
+//       }
+//     } catch (err) {
+//       console.error('Failed to create list:', err);
+//       throw err;
+//     }
+//   };
+
+//   return (
+//     <div className="flex-1 overflow-x-auto">
+//       <div className="flex items-start gap-4 px-6 py-6 min-h-[calc(100vh-6rem)]">
+//         {/* Always show existing lists first */}
+//         {visibleLists.map((list) => (
+//           <ListComponent key={list.id} list={list} onRefresh={onRefresh} />
+//         ))}
+        
+//         {/* AddList stays on the right - full width when empty, pill when lists exist */}
+//         <div className="shrink-0">
+//           <AddList
+//             fullWidth={visibleLists.length === 0} // Full width when empty, pill when lists exist
+//             onCreateList={handleCreateList}
+//           />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
 
 
 

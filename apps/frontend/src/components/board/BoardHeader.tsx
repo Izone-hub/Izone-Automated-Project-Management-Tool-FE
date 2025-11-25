@@ -83,58 +83,5 @@ export function BoardHeader({ board, onUpdateBackground }: BoardHeaderProps) {
   );
 }
 
-// import { Board } from '@/types';
 
-// interface BoardHeaderProps {
-//   board: Board;
-// }
-
-// export function BoardHeader({ board }: BoardHeaderProps) {
-//   const [isEditing, setIsEditing] = useState(false);
-//   const [title, setTitle] = useState(board.title);
-
-//   const handleSave = () => {
-//     // TODO: Implement update board
-//     setIsEditing(false);
-//   };
-
-//   return (
-//     <div className="p-4 bg-black bg-opacity-30 text-white">
-//       <div className="max-w-7xl mx-auto flex items-center justify-between">
-//         <div className="flex items-center gap-4">
-//           {isEditing ? (
-//             <input
-//               type="text"
-//               value={title}
-//               onChange={(e) => setTitle(e.target.value)}
-//               onBlur={handleSave}
-//               onKeyPress={(e) => e.key === 'Enter' && handleSave()}
-//               className="text-2xl font-bold bg-transparent border-b border-white outline-none"
-//               autoFocus
-//             />
-//           ) : (
-//             <h1 
-//               className="text-2xl font-bold cursor-pointer hover:bg-white hover:bg-opacity-20 rounded px-2 py-1"
-//               onClick={() => setIsEditing(true)}
-//             >
-//               {board.title}
-//             </h1>
-//           )}
-//           {board.description && (
-//             <p className="text-gray-300">{board.description}</p>
-//           )}
-//         </div>
-        
-//         <div className="flex items-center gap-2">
-//           <button className="px-3 py-1 bg-white bg-opacity-20 rounded hover:bg-opacity-30 transition">
-//             Share
-//           </button>
-//           <button className="px-3 py-1 bg-white bg-opacity-20 rounded hover:bg-opacity-30 transition">
-//             Menu
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 

@@ -8,11 +8,13 @@ import {
 import { WorkspaceItem } from './WorkspaceItem';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useWorkspaces } from '@/hooks/workspaces/use-workspaces';
+import { Workspace } from '@/lib/types/workspace';
 import { useState } from 'react';
 import { WorkspaceForm } from '../workspaces/workspace-form';
+import { useWorkspaces } from '@/hooks/workspaces/use-workspaces';
 
 export const WorkspaceGroup = () => {
+  
   const { workspaces, createWorkspace } = useWorkspaces();
   const [showCreateForm, setShowCreateForm] = useState(false);
 

@@ -10,15 +10,15 @@ export const mockWorkspaces: Workspace[] = [
     createdAt: new Date('2024-01-15'),
     updatedAt: new Date('2024-01-20'),
   },
-  {
-    id: 'ws-2',
-    name: 'Marketing',
-    description: 'Marketing campaigns and content planning',
-    ownerId: 'user-1',
-    members: ['user-1', 'user-4'],
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date('2024-02-10'),
-  },
+  // {
+  //   id: 'ws-2',
+  //   name: 'Marketing',
+  //   description: 'Marketing campaigns and content planning',
+  //   ownerId: 'user-1',
+  //   members: ['user-1', 'user-4'],
+  //   createdAt: new Date('2024-02-01'),
+  //   updatedAt: new Date('2024-02-10'),
+  // },
 ];
 
 // Start with completely empty arrays

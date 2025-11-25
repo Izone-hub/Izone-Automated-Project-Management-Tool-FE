@@ -12,7 +12,7 @@ export default function DashboardLayout({
       <AppSidebar />
       <SidebarInset>
         <Navbar className="bg-white shadow-md" />
-        <div className="flex-1 px-4 py-6">
+        <div className="flex-1 p-0">
           {children}
         </div>
       </SidebarInset>
