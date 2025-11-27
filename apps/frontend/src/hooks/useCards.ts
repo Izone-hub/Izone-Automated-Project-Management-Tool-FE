@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Card, CreateCardData, UpdateCardData } from '@/types';
+import { Card, CreateCardData, UpdateCardData } from '@/types/card';
 import { mockCards, mockLists } from '@/lib/mockData';
 
 export function useCard() {

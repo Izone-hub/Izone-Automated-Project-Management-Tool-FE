@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { List, CreateListData, UpdateListData } from '@/types';
+import { List, CreateListData, UpdateListData } from '@/types/list';
 import { mockLists, mockCards } from '@/lib/mockData';
 
 export function useList() {

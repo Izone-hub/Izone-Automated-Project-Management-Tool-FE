@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Workspace, Board } from '@/types';
+import { Workspace, Board } from '@/types/board';
 import { mockWorkspaces, mockBoards } from '@/lib/mockData';
 import { CreateBoardForm } from '@/components/workspaces/CreateBoardForm';
 import { useBoard } from '@/hooks/useBoard';

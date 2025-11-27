@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card as CardType } from '@/types';
+import { Card as CardType } from '@/types/card';
 
 interface CardModalProps {
   card: CardType;

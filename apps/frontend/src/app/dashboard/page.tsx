@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Workspace, Board } from '@/types';
+import { Workspace, Board } from '@/types/board';
 import { mockWorkspaces, mockBoards } from '@/lib/mockData';
 
 export default function DashboardPage() {
