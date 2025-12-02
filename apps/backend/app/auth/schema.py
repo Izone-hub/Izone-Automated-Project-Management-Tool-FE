@@ -1,7 +1,7 @@
 # app/auth/schemas.py
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-import uuid
+from uuid import UUID
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -13,7 +13,7 @@ class UserLogin(BaseModel):
     password: str
 
 class User(BaseModel):
-    id: str
+    id: UUID
     email: EmailStr
     full_name: Optional[str] = None
     is_active: bool = True

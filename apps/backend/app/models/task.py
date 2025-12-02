@@ -4,6 +4,7 @@ from sqlalchemy import Column, String, DateTime, ForeignKey, Text, Enum, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.session import Base
+from sqlalchemy.dialects.postgresql import UUID
 
 
 class TaskStatus(str, enum.Enum):
@@ -22,16 +23,16 @@ class TaskPriority(str, enum.Enum):
 class Task(Base):
     __tablename__ = "tasks"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    project_id = Column(String, ForeignKey("projects.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=True)
     status = Column(Enum(TaskStatus), default=TaskStatus.todo)
     priority = Column(Enum(TaskPriority), default=TaskPriority.medium)
-    assignee_id = Column(String, ForeignKey("users.id"), nullable=True)
+    assignee_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     position = Column(Integer, default=0)
-    created_by = Column(String, ForeignKey("users.id"), nullable=False)
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

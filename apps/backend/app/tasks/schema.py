@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from enum import Enum
+from uuid import UUID
 
 
 class TaskStatus(str, Enum):
@@ -18,13 +19,13 @@ class TaskPriority(str, Enum):
 
 
 class TaskBase(BaseModel):
-    project_id: str
-    title: str
+    project_id: UUID
+    name: str
     description: Optional[str] = None
     due_date: Optional[datetime] = None
     status: Optional[TaskStatus] = TaskStatus.todo
     priority: Optional[TaskPriority] = TaskPriority.medium
-    assignee_id: Optional[str] = None
+    assignee_id: Optional[UUID] = None
     position: Optional[int] = 0
 
 
@@ -33,18 +34,18 @@ class TaskCreate(TaskBase):
 
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = None
+    name: Optional[str] = None
     description: Optional[str] = None
     due_date: Optional[datetime] = None
     status: Optional[TaskStatus] = None
     priority: Optional[TaskPriority] = None
-    assignee_id: Optional[str] = None
+    assignee_id: Optional[UUID] = None
     position: Optional[int] = None
 
 
 class TaskOut(TaskBase):
-    id: str
-    created_by: str
+    id: UUID
+    created_by: UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
 

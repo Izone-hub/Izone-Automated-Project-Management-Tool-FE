@@ -18,29 +18,25 @@ def _user_exists(db: Session, user_id: UUID) -> User:
 
 # ---------- Workspace ----------
 def create_workspace(db: Session, data: WorkspaceCreate, current_user_id: UUID) -> Workspace:
-    _user_exists(db, data.owner_id)
-
-    if data.owner_id != current_user_id:
-        raise HTTPException(status_code=403, detail="Cannot create workspace for another user")
-
     ws = Workspace(
         name=data.name,
-        description=data.description,
-        owner_id=data.owner_id
+        description=data.description or None,
+        owner_id=current_user_id,        # you already have this
+        created_by=current_user_id       # THIS IS THE MISSING LINE
     )
     db.add(ws)
-    db.flush()  # to get ws.id before commit
+    db.flush()  # generates ws.id
 
-    # Owner is automatically admin
+    # Owner automatically becomes admin
     db.add(WorkspaceMember(
         workspace_id=ws.id,
-        user_id=data.owner_id,
+        user_id=current_user_id,
         role=RoleEnum.admin
     ))
+
     db.commit()
     db.refresh(ws)
     return ws
-
 
 def get_workspace_by_id(db: Session, workspace_id: UUID) -> Workspace | None:
     return db.get(Workspace, workspace_id)

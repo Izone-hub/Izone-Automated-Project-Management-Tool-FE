@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID
-
+from ..models.workspace import Workspace
 from ..db.session import get_db
 from .schema import WorkspaceCreate, WorkspaceOut, WorkspaceUpdate, MemberAdd, MemberOut
 from .crud import create_workspace, get_workspace_by_id, update_workspace, delete_workspace, add_member, remove_member
@@ -21,18 +21,16 @@ def create_workspace_endpoint(
     payload.owner_id = current_user.id
     return create_workspace(db, payload, current_user.id)
 
-
 # READ ONE
-@router.get("/{workspace_id}", response_model=WorkspaceOut)
-def read_workspace_endpoint(
-    workspace_id: UUID,
+@router.get("/", response_model=list[WorkspaceOut])
+def list_workspaces(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    ws = get_workspace_by_id(db, workspace_id)
-    if not ws:
-        raise HTTPException(status_code=404, detail="Workspace not found")
-    return ws
+    workspaces = db.query(Workspace).filter(
+        Workspace.owner_id == current_user.id
+    ).all()
+    return workspaces
 
 
 # UPDATE

@@ -1,13 +1,14 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 
 class ProjectBase(BaseModel):
     name: str
     description: Optional[str] = None
     background_color: Optional[str] = "#ffffff"
-    workspace_id: str
+    workspace_id: UUID
 
 
 class ProjectCreate(ProjectBase):
@@ -21,11 +22,11 @@ class ProjectUpdate(BaseModel):
 
 
 class ProjectOut(ProjectBase):
-    id: str
-    created_by: str
+    id: UUID
+    created_by: UUID
     archived: bool
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         orm_mode = True

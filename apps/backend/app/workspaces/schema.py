@@ -26,8 +26,7 @@ class OrgBase(BaseModel):
 
 # ---------- Create ----------
 class WorkspaceCreate(OrgBase):
-    owner_id: UUID                    # frontend can send, backend overrides with JWT
-
+ owner_id: Optional[UUID] = None        
 
 # ---------- Update ----------
 class WorkspaceUpdate(BaseModel):
@@ -62,4 +61,4 @@ class MemberOut(BaseModel):
     created_at: datetime
 
     class Config:
-        from_attributes = True
+         orm_mode = True

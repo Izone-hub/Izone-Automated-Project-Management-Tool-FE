@@ -6,6 +6,10 @@ from app.models.user import User
 from app.auth import schema
 from app.auth.security import hash_password, verify_password, create_access_token, get_current_user
 import uuid
+from app.workspaces.schema import RoleEnum 
+from app.models import Workspace, WorkspaceMember
+
+
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -26,7 +30,31 @@ def register_user(user: schema.UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    # ---------------------------
+    # CREATE DEFAULT WORKSPACE
+    # ---------------------------
+    default_ws = Workspace(
+        name=f"{new_user.full_name or 'My'} Workspace",
+        description="Default workspace created automatically",
+        owner_id=new_user.id,
+        created_by=new_user.id
+    )
+    db.add(default_ws)
+    db.flush()   # to get workspace ID
+
+    # add user as admin
+    db.add(WorkspaceMember(
+        workspace_id=default_ws.id,
+        user_id=new_user.id,
+        role=RoleEnum.admin
+    ))
+
+    db.commit()
+    # ---------------------------
+
     return new_user
+
 
 @router.post("/login", response_model=schema.Token)
 def login(user: schema.UserLogin, db: Session = Depends(get_db)):
