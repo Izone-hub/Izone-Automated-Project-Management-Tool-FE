@@ -12,7 +12,6 @@ import Image from "next/image";
 import { signupSchema, type SignupFormData } from "@/lib/validations/auth";
 import { useAuth } from "@/hooks/use-auth";
 import { SignupData } from "@/lib/api/auth";
-import { SignupData } from "@/lib/api/auth";
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,35 +27,21 @@ export default function SignupPage() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    try {   const { firstName, lastName, email, password } = data;
+    try {
+      const { firstName, lastName, email, password } = data;
 
-     // Check the values before sending
-    console.log('Signup data being sent:', {
-      email,
-      full_name: `${firstName} ${lastName}`,
-      password, // Make sure this is defined
-    });
+      // Check the values before sending
+      console.log('Signup data being sent:', {
+        email,
+        full_name: `${firstName} ${lastName}`,
+        password, // Make sure this is defined
+      });
 
-    const signupData: SignupData = {
-      email,
-      Full_Name: `${firstName} ${lastName}`,
-      password, 
-    };
-       
-    try {   const { firstName, lastName, email, password } = data;
-
-     // Check the values before sending
-    console.log('Signup data being sent:', {
-      email,
-      full_name: `${firstName} ${lastName}`,
-      password, // Make sure this is defined
-    });
-
-    const signupData: SignupData = {
-      email,
-      Full_Name: `${firstName} ${lastName}`,
-      password, 
-    };
+      const signupData: SignupData = {
+        email,
+        Full_Name: `${firstName} ${lastName}`,
+        password, 
+      };
        
       await signup(signupData);
     } catch (error) {

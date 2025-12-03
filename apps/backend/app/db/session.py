@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 import os
 from pathlib import Path
+from urllib.parse import quote_plus
 
 # Load .env file from the backend directory (parent of app directory)
 env_path = Path(__file__).parent.parent.parent / ".env"
@@ -23,8 +24,20 @@ if not all([DB_USER, DB_PASSWORD, DB_HOST, DB_NAME]):
         "Please ensure DB_USER, DB_PASSWORD, DB_HOST, and DB_NAME are set in .env file"
     )
 
+# Validate DB_HOST doesn't contain @ (which would indicate incorrect configuration)
+if "@" in DB_HOST:
+    raise ValueError(
+        f"Invalid DB_HOST value: '{DB_HOST}'. "
+        "DB_HOST should only contain the hostname/IP address, not the username. "
+        "The username should be set in DB_USER separately."
+    )
+
+# URL-encode password to handle special characters
+encoded_password = quote_plus(DB_PASSWORD)
+encoded_user = quote_plus(DB_USER)
+
 # Construct database URL
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = f"postgresql://{encoded_user}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Create database engine
 engine = create_engine(
