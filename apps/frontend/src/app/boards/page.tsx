@@ -3,8 +3,8 @@
 
 import { useState } from 'react';
 import { useBoardStore } from '@/store/boardStore';
-import { BoardCard } from '@/components/boards/BoardCard';
-import { CreateBoard } from '@/components/boards/CreateBoard';
+import { BoardCard } from '@/components/Boards/BoardCard';
+import {createBoard} from "@/components/board/createBoard";
 import { Search, Filter, Grid, List, Archive, Star, Plus } from 'lucide-react';
 
 export default function BoardsPage() {
