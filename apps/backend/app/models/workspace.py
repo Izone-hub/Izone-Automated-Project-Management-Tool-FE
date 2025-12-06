@@ -3,16 +3,14 @@ import enum
 from sqlalchemy import Column, String, DateTime, ForeignKey, Text, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import UUID
 from app.db.session import Base
-
+from sqlalchemy.dialects.postgresql import UUID
 
 class WorkspaceRole(str, enum.Enum):
     owner = "owner"
     admin = "admin"
     member = "member"
     guest = "guest"
-
 
 class Workspace(Base):
     __tablename__ = "workspaces"
@@ -25,11 +23,32 @@ class Workspace(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    creator = relationship("User", foreign_keys=[created_by])
-    members = relationship("WorkspaceMember", back_populates="workspace", cascade="all, delete-orphan")
-    projects = relationship("Project", back_populates="workspace", cascade="all, delete-orphan")
+    owner = relationship(
+        "User",
+        back_populates="workspaces",
+        foreign_keys=[owner_id]
+    )
+
+    creator = relationship(
+        "User",
+        back_populates="created_workspaces",
+        foreign_keys=[created_by]
+    )
+
+    members = relationship(
+        "WorkspaceMember",
+        back_populates="workspace",
+        cascade="all, delete-orphan"
+    )
+
+    projects = relationship(
+        "Project",
+        back_populates="workspace",
+        cascade="all, delete-orphan"
+    )
 
 
+# ------------------- WorkspaceMember -------------------
 class WorkspaceMember(Base):
     __tablename__ = "workspace_members"
 
@@ -39,6 +58,12 @@ class WorkspaceMember(Base):
     role = Column(Enum(WorkspaceRole), default=WorkspaceRole.member)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    workspace = relationship("Workspace", back_populates="members")
-    user = relationship("User")
+    workspace = relationship(
+        "Workspace",
+        back_populates="members"
+    )
 
+    user = relationship(
+        "User",
+        back_populates="workspace_memberships"
+    )

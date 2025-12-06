@@ -1,7 +1,8 @@
 # app/auth/schemas.py
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
+from app.workspaces.schema import WorkspaceOut
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -17,6 +18,7 @@ class User(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
     is_active: bool = True
+    workspaces: List[WorkspaceOut] = []
 
     class Config:
         orm_mode = True
