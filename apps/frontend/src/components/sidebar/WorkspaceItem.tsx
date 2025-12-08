@@ -3,7 +3,7 @@
 import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { ChevronRight, Users, Layout, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useWorkspace } from '@/hooks/useWorkspace';
+import { useWorkspaces } from '@/hooks/useWorkspace';
 import { useState } from 'react';
 
 interface WorkspaceItemProps {
@@ -23,11 +23,11 @@ const workspaceMenuItems = [
 
 export const WorkspaceItem = ({ workspace }: WorkspaceItemProps) => {
   const router = useRouter();
-  const { selectWorkspace } = useWorkspace(); // ✅ Now this function exists!
+  const { selectWorkspaces } = useWorkspaces();
   const [expanded, setExpanded] = useState(false);
 
   const handleClick = () => {
-    selectWorkspace(workspace.id); // ✅ Will work now
+    selectWorkspaces(workspace.id); 
     router.push(`/workspace/${workspace.id}`);
     setExpanded(!expanded);
   };

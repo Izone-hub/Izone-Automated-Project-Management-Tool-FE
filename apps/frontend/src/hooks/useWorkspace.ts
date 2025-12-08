@@ -1,59 +1,89 @@
-import { useCallback } from 'react';
-import { useWorkspaceStore } from '@/store/workspace.store';
-import { CreateWorkspaceData, UpdateWorkspaceData } from '@/types/workspace';
+// hooks/useWorkspace.ts
+import { useState, useEffect, useCallback } from "react";
+import { workspaceAPI, Workspace } from "@/lib/api/workspaces";
 
-export const useWorkspace = () => {
-  const store = useWorkspaceStore();
+interface UseWorkspacesReturn {
+  workspaces: Workspace[];
+  loading: boolean;
+  error: string | null;
+  isAuthenticated: boolean;
+  createWorkspace: (payload: { name: string; description?: string }) => Promise<Workspace>;
+  reload: () => Promise<void>;
+}
 
-  const loadWorkspaces = useCallback(async () => {
-    await store.fetchWorkspaces();
-  }, [store.fetchWorkspaces]);
+export const useWorkspaces = (): UseWorkspacesReturn => {
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  const loadWorkspaceById = useCallback(async (id: string) => {
-    await store.fetchWorkspaceById(id);
-  }, [store.fetchWorkspaceById]);
+  const checkAuth = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    const token = localStorage.getItem("auth_token");
+    return !!token;
+  }, []);
 
-  const addWorkspace = useCallback(async (data: CreateWorkspaceData) => {
-    return await store.createWorkspace(data);
-  }, [store.createWorkspace]);
-
-  const editWorkspace = useCallback(async (id: string, data: UpdateWorkspaceData) => {
-    await store.updateWorkspace(id, data);
-  }, [store.updateWorkspace]);
-
-  const removeWorkspace = useCallback(async (id: string) => {
-    await store.deleteWorkspace(id);
-  }, [store.deleteWorkspace]);
-
-  // ✅ Add selectWorkspace to the hook return
-  const selectWorkspace = useCallback((id: string) => {
-    store.selectWorkspace(id);
-  }, [store.selectWorkspace]);
-
-  return {
-    // State
-    workspaces: store.workspaces,
-    currentWorkspace: store.currentWorkspace,
-    selectedWorkspaceId: store.selectedWorkspaceId,
-    selectedWorkspace: store.getSelectedWorkspace(),
-    isLoading: store.isLoading,
-    error: store.error,
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     
-    // Actions
-    loadWorkspaces,
-    loadWorkspaceById,
-    addWorkspace,
-    editWorkspace,
-    removeWorkspace,
-    selectWorkspace, // ✅ Now available
-    setCurrentWorkspace: store.setCurrentWorkspace,
-    clearError: store.clearError,
+    const isAuth = checkAuth();
+    setIsAuthenticated(isAuth);
     
-    // Derived state
-    hasWorkspaces: store.workspaces.length > 0,
+    if (!isAuth) {
+      setError("Please login to view workspaces");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const data = await workspaceAPI.getAll();
+      setWorkspaces(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load workspaces");
+      
+      // Update auth state if unauthorized
+      if (err.message.includes("Session expired") || err.message.includes("Unauthorized")) {
+        setIsAuthenticated(false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [checkAuth]);
+
+  useEffect(() => {
+    // Only run on client side
+    if (typeof window !== "undefined") {
+      load();
+    }
+  }, [load]);
+
+  const createWorkspace = async (payload: { name: string; description?: string }) => {
+    if (!checkAuth()) {
+      throw new Error("Please login to create a workspace");
+    }
+
+    try {
+      const created = await workspaceAPI.create(payload);
+      setWorkspaces(prev => [created, ...prev]);
+      return created;
+    } catch (err: any) {
+      setError(err.message || "Failed to create workspace");
+      
+      // Update auth state if unauthorized
+      if (err.message.includes("Session expired") || err.message.includes("Unauthorized")) {
+        setIsAuthenticated(false);
+      }
+      throw err;
+    }
+  };
+
+  return { 
+    workspaces, 
+    loading, 
+    error, 
+    isAuthenticated,
+    createWorkspace, 
+    reload: load 
   };
 };
-
-
-
-

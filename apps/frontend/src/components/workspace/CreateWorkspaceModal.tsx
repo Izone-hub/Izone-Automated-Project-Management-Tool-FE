@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Globe, Lock, Users } from 'lucide-react';
-import { useWorkspace } from '@/hooks/useWorkspace';
+import { useWorkspaces } from '@/hooks/useWorkspace';
 
 interface CreateWorkspaceModalProps {
   isOpen: boolean;
