@@ -10,7 +10,6 @@ function getToken(): string | null {
 function headers(): HeadersInit {
   const token = getToken();
   
-  // Don't throw here, let the API call handle it
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
@@ -27,11 +26,18 @@ export interface Workspace {
   name: string;
   description?: string;
   owner_id: string;
+  created_by: string;
   created_at: string;
   updated_at: string;
 }
 
+export interface CreateWorkspacePayload {
+  name: string;
+  description?: string;
+}
+
 export const workspaceAPI = {
+  // Get all workspaces (list endpoint)
   async getAll(): Promise<Workspace[]> {
     try {
       const res = await fetch(`${API_BASE_URL}/workspaces`, {
@@ -40,10 +46,7 @@ export const workspaceAPI = {
       });
 
       if (res.status === 401) {
-        // Clear invalid token
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("auth_token");
-        }
+        localStorage.removeItem("auth_token");
         throw new Error("Session expired. Please login again.");
       }
 
@@ -58,7 +61,8 @@ export const workspaceAPI = {
     }
   },
 
-  async create(payload: { name: string; description?: string }): Promise<Workspace> {
+  // Create workspace
+  async create(payload: CreateWorkspacePayload): Promise<Workspace> {
     try {
       const res = await fetch(`${API_BASE_URL}/workspaces`, {
         method: "POST",
@@ -68,9 +72,7 @@ export const workspaceAPI = {
       });
 
       if (res.status === 401) {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("auth_token");
-        }
+        localStorage.removeItem("auth_token");
         throw new Error("Session expired. Please login again.");
       }
 
@@ -85,9 +87,28 @@ export const workspaceAPI = {
       throw error;
     }
   },
+
+  // Since you don't have a GET workspace by ID endpoint,
+  // we'll handle it client-side by filtering from the list
+  async getById(workspaceId: string): Promise<Workspace | null> {
+    try {
+      // First get all workspaces
+      const workspaces = await this.getAll();
+      
+      // Then find the specific workspace
+      const workspace = workspaces.find(ws => ws.id === workspaceId);
+      
+      if (!workspace) {
+        throw new Error(`Workspace with ID ${workspaceId} not found`);
+      }
+      
+      return workspace;
+    } catch (error) {
+      console.error("Error fetching workspace by ID:", error);
+      throw error;
+    }
+  }
 };
-
-
 
 
 

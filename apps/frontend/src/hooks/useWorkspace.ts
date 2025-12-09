@@ -7,14 +7,16 @@ interface UseWorkspacesReturn {
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  currentWorkspace: Workspace | null;
   createWorkspace: (payload: { name: string; description?: string }) => Promise<Workspace>;
   reload: () => Promise<void>;
-  // Add loadWorkspaces as an alias for reload
-  loadWorkspaces: () => Promise<void>;
+  getWorkspaceById: (workspaceId: string) => Workspace | null;
+  loadWorkspaceById: (workspaceId: string) => Promise<void>;
 }
 
 export const useWorkspaces = (): UseWorkspacesReturn => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -80,21 +82,54 @@ export const useWorkspaces = (): UseWorkspacesReturn => {
     }
   };
 
+  // Get workspace from already loaded list
+  const getWorkspaceById = useCallback((workspaceId: string): Workspace | null => {
+    return workspaces.find(ws => ws.id === workspaceId) || null;
+  }, [workspaces]);
+
+  // Load a specific workspace
+  const loadWorkspaceById = useCallback(async (workspaceId: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // First try to find in already loaded workspaces
+      const existingWorkspace = workspaces.find(ws => ws.id === workspaceId);
+      if (existingWorkspace) {
+        setCurrentWorkspace(existingWorkspace);
+        setLoading(false);
+        return;
+      }
+      
+      // If not found, reload all workspaces
+      await load();
+      
+      // Try again after reloading
+      const workspaceAfterReload = workspaces.find(ws => ws.id === workspaceId);
+      if (workspaceAfterReload) {
+        setCurrentWorkspace(workspaceAfterReload);
+      } else {
+        setError(`Workspace with ID ${workspaceId} not found`);
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to load workspace");
+    } finally {
+      setLoading(false);
+    }
+  }, [workspaces, load]);
+
   return { 
     workspaces, 
     loading, 
     error, 
     isAuthenticated,
+    currentWorkspace,
     createWorkspace, 
     reload: load,
-    // Add loadWorkspaces as an alias for load
-    loadWorkspaces: load
+    getWorkspaceById,
+    loadWorkspaceById
   };
 };
-
-
-
-
 
 
 
