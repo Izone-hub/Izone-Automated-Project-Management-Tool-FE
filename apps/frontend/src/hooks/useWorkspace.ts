@@ -9,6 +9,8 @@ interface UseWorkspacesReturn {
   isAuthenticated: boolean;
   createWorkspace: (payload: { name: string; description?: string }) => Promise<Workspace>;
   reload: () => Promise<void>;
+  // Add loadWorkspaces as an alias for reload
+  loadWorkspaces: () => Promise<void>;
 }
 
 export const useWorkspaces = (): UseWorkspacesReturn => {
@@ -84,6 +86,17 @@ export const useWorkspaces = (): UseWorkspacesReturn => {
     error, 
     isAuthenticated,
     createWorkspace, 
-    reload: load 
+    reload: load,
+    // Add loadWorkspaces as an alias for load
+    loadWorkspaces: load
   };
 };
+
+
+
+
+
+
+
+
+

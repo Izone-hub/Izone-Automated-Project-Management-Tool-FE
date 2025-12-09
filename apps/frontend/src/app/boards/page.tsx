@@ -1,4 +1,4 @@
-// src/app/boards/page.tsx
+
 'use client';
 
 import { useState } from 'react';

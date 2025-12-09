@@ -36,7 +36,7 @@ export const workspaceAPI = {
     try {
       const res = await fetch(`${API_BASE_URL}/workspaces`, {
         headers: headers(),
-        credentials: 'include', // Add this if using cookies
+        credentials: 'include', 
       });
 
       if (res.status === 401) {
