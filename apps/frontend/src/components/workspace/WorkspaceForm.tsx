@@ -1,100 +1,75 @@
-// src/components/workspace/WorkspaceForm.tsx
+// components/workspace/WorkspaceForm.tsx
 'use client';
-
-import { useState } from 'react';
-
-const COLORS = ['#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B', '#EC4899'];
+import React, { useState } from "react";
+import { useWorkspaces } from "@/hooks/useWorkspace";
 
 interface WorkspaceFormProps {
-  onSubmit: (data: { name: string; description?: string; color: string }) => void;
-  onCancel?: () => void;
+  onSuccess?: () => void;
 }
 
-export default function WorkspaceForm({ onSubmit, onCancel }: WorkspaceFormProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedColor, setSelectedColor] = useState(COLORS[0]);
+export default function WorkspaceForm({ onSuccess }: WorkspaceFormProps) {
+  const { createWorkspace } = useWorkspaces();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    
-    onSubmit({
-      name: name.trim(),
-      description: description.trim() || undefined,
-      color: selectedColor,
-    });
-    
-    // Reset form
-    setName('');
-    setDescription('');
+    setError("");
+
+    if (!name.trim()) {
+      setError("Workspace name is required");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await createWorkspace({ name: name.trim(), description: description.trim() || undefined });
+      setName("");
+      setDescription("");
+      onSuccess?.();
+    } catch (err: any) {
+      setError(err.message || "Failed to create workspace");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-1">Workspace Name *</label>
+        <label className="block text-sm font-medium text-gray-700">Workspace Name *</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="My Workspace"
-          required
+          className="w-full border rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500"
+          placeholder="Marketing Team"
           autoFocus
         />
       </div>
-      
+
       <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
+        <label className="block text-sm font-medium text-gray-700">Description (Optional)</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="Description"
-          rows={2}
+          rows={3}
+          className="w-full border rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 resize-none"
+          placeholder="What's this workspace for?"
         />
       </div>
-      
-      <div>
-        <label className="block text-sm font-medium mb-2">Color</label>
-        <div className="flex gap-2">
-          {COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              onClick={() => setSelectedColor(color)}
-              className={`w-8 h-8 rounded-full border-2 ${selectedColor === color ? 'border-black' : 'border-gray-300'}`}
-              style={{ backgroundColor: color }}
-            />
-          ))}
-        </div>
-      </div>
-      
-      <div className="flex gap-2 pt-2">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            Cancel
-          </button>
-        )}
-        <button
-          type="submit"
-          disabled={!name.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-        >
-          Create Workspace
-        </button>
-      </div>
+
+      {error && <p className="text-red-600 text-sm">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+      >
+        {submitting ? "Creating..." : "Create Workspace"}
+      </button>
     </form>
   );
 }
-
-
-
-
-
-

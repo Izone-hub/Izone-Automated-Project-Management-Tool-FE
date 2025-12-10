@@ -1,301 +1,345 @@
 // 'use client';
-
-// import { useState, useEffect } from 'react';
-// import Link from 'next/link';
-// import { Workspace, Board } from '@/types/board';
-// import { mockWorkspaces, mockBoards } from '@/lib/mockData';
-// import { useProjects } from '@/hooks/useProject';
-// import { useBoards } from '@/hooks/useBoards';
-
+// import React, { useState, useEffect } from "react";
+// import { useRouter } from "next/navigation";
+// import { useWorkspaces } from "@/hooks/useWorkspace";
+// import WorkspaceForm from "@/components/workspace/WorkspaceForm";
+// import { WorkspaceCard } from "@/components/workspace/WorkspaceCard";
+// import { Plus, RefreshCw } from "lucide-react";
 
 // export default function DashboardPage() {
-//   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [showProjectForm, setShowProjectForm] = useState(false);
-
-//   // Use hooks with safe defaults
-//   const { projects = [], createProject, archiveProject } = useProjects();
-//   const { boards: trelloBoards = [], createBoard } = useBoards();
+//   const router = useRouter();
+//   const { workspaces, loading, error, isAuthenticated, reload } = useWorkspaces();
+//   const [showForm, setShowForm] = useState(false);
 
 //   useEffect(() => {
-//     const loadData = async () => {
-//       setIsLoading(true);
-//       await new Promise(resolve => setTimeout(resolve, 1000));
-//       setWorkspaces(mockWorkspaces || []);
-//       setIsLoading(false);
-//     };
-
-//     loadData();
-//   }, []);
-
-//   const handleCreateProject = (projectData: { name: string; description?: string }) => {
+//     // Check authentication on load
+//     const token = localStorage.getItem('auth_token');
+//     const user = localStorage.getItem('user');
+    
+//     if (!token || !user) {
+//       router.push('/login?redirect=/dashboard');
+//       return;
+//     }
+    
+//     // 🔥 Validate token belongs to current user
 //     try {
-//       console.log('Dashboard: Creating project', projectData);
-//       const project = createProject(projectData);
-      
-//       // Create a default board for the project with proper ID
-//       if (createBoard) {
-//         const boardId = `board-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-//         const board = createBoard({
-//           id: boardId,
-//           name: `${projectData.name} Board`,
-//           title: `${projectData.name} Board`,
-//           projectId: project.id,
-//           description: projectData.description,
-//           lists: [] // Start with empty lists
-//         });
-        
-//         console.log('Dashboard: Created board for project', board);
-//       }
-//       setShowProjectForm(false);
-//     } catch (error) {
-//       console.error('Error creating project:', error);
+//       const parsedUser = JSON.parse(user);
+//       // You could add additional validation here
+//       console.log('Current user:', parsedUser.email);
+//     } catch {
+//       // Clear corrupted user data
+//       localStorage.removeItem('user');
+//       router.push('/login?redirect=/dashboard');
+//     }
+//   }, [router]);
+
+//   // Redirect to login if not authenticated via hook
+//   useEffect(() => {
+//     if (!loading && !isAuthenticated && error?.includes("login")) {
+//       router.push("/login?redirect=/dashboard");
+//     }
+//   }, [loading, isAuthenticated, error, router]);
+
+//   if (loading) {
+//     return (
+//       <div className="flex justify-center items-center min-h-screen">
+//         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+//       </div>
+//     );
+//   }
+
+//   if (!isAuthenticated) {
+//     return (
+//       <div className="p-6 text-center">
+//         <p className="text-red-600 mb-4">{error}</p>
+//         <button
+//           onClick={() => router.push("/login?redirect=/dashboard")}
+//           className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+//         >
+//           Login to Continue
+//         </button>
+//       </div>
+//     );
+//   }
+
+//   // Also add a check before redirecting to workspaces
+//   const handleWorkspaceClick = (workspaceId: string) => {
+//     // Store last workspace for current user only
+//     const user = localStorage.getItem('user');
+//     if (user) {
+//       localStorage.setItem('lastWorkspaceId', workspaceId);
+//       router.push(`/workspace/${workspaceId}`);
+//     } else {
+//       router.push('/login');
 //     }
 //   };
 
-//   // ... rest of your dashboard code remains the same
+//   return (
+//     <div className="min-h-screen bg-gray-50">
+//       {/* Header */}
+//       <div className="bg-white border-b border-gray-200 mb-6">
+//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+//           <div className="flex justify-between items-center">
+//             <div>
+//               <h1 className="text-2xl font-bold text-gray-900">Your Workspaces</h1>
+//               <p className="text-gray-600 text-sm mt-1">
+//                 Manage all your workspaces and projects
+//               </p>
+//             </div>
+//             <div className="flex gap-3">
+//               <button
+//                 onClick={reload}
+//                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+//               >
+//                 <RefreshCw className="w-4 h-4" />
+//                 Refresh
+//               </button>
+//               <button
+//                 onClick={() => setShowForm(prev => !prev)}
+//                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+//               >
+//                 <Plus className="w-4 h-4" />
+//                 Create Workspace
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+//         {showForm && (
+//           <div className="mb-8">
+//             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h2 className="text-lg font-semibold text-gray-900">Create New Workspace</h2>
+//                 <button
+//                   onClick={() => setShowForm(false)}
+//                   className="text-gray-500 hover:text-gray-700"
+//                 >
+//                   ✕
+//                 </button>
+//               </div>
+//               <WorkspaceForm onSuccess={() => {
+//                 reload();
+//                 setShowForm(false);
+//               }} />
+//             </div>
+//           </div>
+//         )}
+
+//         {error && !error.includes("login") && (
+//           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+//             {error}
+//           </div>
+//         )}
+
+//         {workspaces.length === 0 ? (
+//           <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+//             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+//               <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+//                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14H7v-2h4v2zm0-6H7v-2h4v4zm0-6H7V7h4v4zm6 12h-4v-2h4v2zm0-6h-4v-2h4v2zm0-6h-4V7h4v4z" />
+//               </svg>
+//             </div>
+//             <h3 className="text-lg font-medium text-gray-800 mb-2">No workspaces yet</h3>
+//             <p className="text-gray-600 mb-6">Create your first workspace to start organizing your projects</p>
+//             <button
+//               onClick={() => setShowForm(true)}
+//               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+//             >
+//               Create Workspace
+//             </button>
+//           </div>
+//         ) : (
+//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+//             {workspaces.map(workspace => (
+//               <div key={workspace.id} onClick={() => handleWorkspaceClick(workspace.id)}>
+//                 <WorkspaceCard 
+//                   workspace={{
+//                     ...workspace,
+//                     memberCount: 0,
+//                     boardCount: 0,
+//                     visibility: 'private',
+//                     color: '#0079bf'
+//                   }}
+//                 />
+//               </div>
+//             ))}
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
 
 
 
 
+
+
+
+
+
+
+
+
+// src/app/dashboard/page.tsx
 'use client';
-
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import {  Board } from '@/types/board';
-import { Workspace } from '@/types/workspace';
-import { mockWorkspaces, mockBoards } from '@/lib/mockData';
-import { useProjects } from '@/hooks/useProject';
-import { useBoards } from '@/hooks/useBoards';
-import ProjectForm from '@/components/projects/ProjectForm';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useWorkspaces } from "@/hooks/useWorkspace";
+import WorkspaceForm from "@/components/workspace/WorkspaceForm";
+import { WorkspaceCard } from "@/components/workspace/WorkspaceCard";
+import { Plus, RefreshCw } from "lucide-react";
 
 export default function DashboardPage() {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showProjectForm, setShowProjectForm] = useState(false);
-
-  const { projects, createProject, archiveProject } = useProjects();
-  const { boards: trelloBoards = [], createBoard } = useBoards(); // Default to empty array
+  const router = useRouter();
+  const { workspaces, loading, error, isAuthenticated, reload } = useWorkspaces();
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setWorkspaces(mockWorkspaces);
-      setIsLoading(false);
-    };
+    // Redirect to login if not authenticated
+    if (!loading && !isAuthenticated && error?.includes("login")) {
+      router.push("/login?redirect=/dashboard");
+    }
+  }, [loading, isAuthenticated, error, router]);
 
-    loadData();
-  }, []);
-
-  const handleCreateProject = (projectData: { name: string; description?: string }) => {
-    const project = createProject(projectData);
-    // Create a default board for the project
-    createBoard({
-      name: `${projectData.name} Board`,
-      projectId: project.id,
-      description: projectData.description
-    });
-    setShowProjectForm(false);
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
-  // Safe array access with default values
-  const safeBoards = mockBoards || [];
-  const safeTrelloBoards = trelloBoards || [];
-  
-  // Combine and remove duplicates
-  const allBoards = [...safeBoards, ...safeTrelloBoards].reduce((acc: Board[], current) => {
-    const exists = acc.find(board => board.id === current.id);
-    if (!exists) {
-      acc.push(current);
-    }
-    return acc;
-  }, []);
-
-  const totalBoardsCount = allBoards.length;
+  if (!isAuthenticated) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button
+          onClick={() => router.push("/login?redirect=/dashboard")}
+          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+        >
+          Login to Continue
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Workspaces</h1>
-          <button
-            onClick={() => setShowProjectForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Create Board
-          </button>
-        </div>
-
-        {/* Project Creation Modal */}
-        {showProjectForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg w-full max-w-md">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold">Create New Project</h2>
-                  <button
-                    onClick={() => setShowProjectForm(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <ProjectForm 
-                  onSubmit={handleCreateProject}
-                  onCancel={() => setShowProjectForm(false)}
-                />
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 mb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Your Workspaces</h1>
+              <p className="text-gray-600 text-sm mt-1">
+                Manage all your workspaces and projects
+              </p>
             </div>
-          </div>
-        )}
-
-        {/* Projects Section */}
-        {projects && projects.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Projects</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 w-full">
-              {projects.filter(p => !p.isArchived).map(project => {
-                const projectBoard = safeTrelloBoards.find(b => b.projectId === project.id);
-                return (
-                  <div
-                    key={project.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow block w-full"
-                  >
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{project.name}</h3>
-                    {project.description && (
-                      <p className="text-gray-600 mb-4 line-clamp-2">{project.description}</p>
-                    )}
-                    <div className="flex gap-2 mt-4">
-                      {projectBoard ? (
-                        <Link
-                          href={`/b/${projectBoard.id}/${projectBoard.name?.toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'board'}`}
-                          className="flex-1 bg-blue-500 text-white text-center py-2 rounded text-sm hover:bg-blue-600"
-                        >
-                          Open Board
-                        </Link>
-                      ) : (
-                        <button className="flex-1 bg-gray-500 text-white text-center py-2 rounded text-sm cursor-not-allowed opacity-50">
-                          No Board
-                        </button>
-                      )}
-                      <button
-                        onClick={() => archiveProject(project.id)}
-                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
-                      >
-                        Archive
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Workspaces Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-12 w-full">
-          {workspaces.map(workspace => (
-            <Link
-              key={workspace.id}
-              href={`/workspace/${workspace.id}`}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow block w-full"
-            >
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{workspace.name}</h3>
-              {workspace.description && (
-                <p className="text-gray-600 mb-4 line-clamp-2">{workspace.description}</p>
-              )}
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>{workspace.members.length} members</span>
-                <span>
-                  {safeBoards.filter(b => b.workspaceId === workspace.id).length} boards
-                </span>
-              </div>
-            </Link>
-          ))}
-          
-          {/* Create Workspace Card */}
-          <Link
-            href="/workspace/create"
-            className="bg-white rounded-lg shadow-sm border-2 border-dashed border-gray-300 p-6 hover:border-gray-400 transition-colors flex flex-col items-center justify-center text-center block w-full"
-          >
-            <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Create Workspace</h3>
-          </Link>
-        </div>
-
-        {/* All Boards Section */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">All Boards ({totalBoardsCount})</h2>
-          {totalBoardsCount === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
-              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              </svg>
-              <p className="text-gray-600 mb-4">No boards yet. Create a project or workspace to get started.</p>
+            <div className="flex gap-3">
               <button
-                onClick={() => setShowProjectForm(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={reload}
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
-                Create Your First Board
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </button>
+              <button
+                onClick={() => setShowForm(prev => !prev)}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                Create Workspace
               </button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 w-full">
-              {allBoards.map(board => {
-                const workspace = workspaces.find(ws => ws.id === board.workspaceId);
-                const isTrelloBoard = !board.workspaceId; // Trello boards don't have workspaceId
-                
-                return (
-                  <Link
-                    key={board.id}
-                    href={`/b/${board.id}/${board.name?.toLowerCase().replace(/[^a-z0-9]+/g,'-') || board.title?.toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'board'}`}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow block w-full"
-                  >
-                    <div className={`h-3 rounded-t-lg mb-3 ${
-                      board.background === 'blue' ? 'bg-blue-500' :
-                      board.background === 'green' ? 'bg-green-500' :
-                      board.background === 'red' ? 'bg-red-500' :
-                      board.background === 'purple' ? 'bg-purple-500' :
-                      board.background === 'orange' ? 'bg-orange-500' :
-                      board.background === 'pink' ? 'bg-pink-500' :
-                      'bg-blue-500'
-                    }`} />
-                    <h4 className="font-semibold text-gray-900 mb-2 truncate">
-                      {board.name || board.title || 'Untitled Board'}
-                    </h4>
-                    {board.description && (
-                      <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                        {board.description}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>
-                        {isTrelloBoard ? 'Project' : workspace?.name || 'Workspace'}
-                      </span>
-                      <span>{board.lists?.length || 0} lists</span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {showForm && (
+          <div className="mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Create New Workspace</h2>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <WorkspaceForm onSuccess={() => {
+                reload();
+                setShowForm(false);
+              }} />
+            </div>
+          </div>
+        )}
+
+        {error && !error.includes("login") && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {workspaces.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14H7v-2h4v2zm0-6H7v-2h4v4zm0-6H7V7h4v4zm6 12h-4v-2h4v2zm0-6h-4v-2h4v2zm0-6h-4V7h4v4z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-800 mb-2">No workspaces yet</h3>
+            <p className="text-gray-600 mb-6">Create your first workspace to start organizing your projects</p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Create Workspace
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {workspaces.map(workspace => (
+              <WorkspaceCard 
+                key={workspace.id} 
+                workspace={{
+                  ...workspace,
+                  memberCount: 0, // Add actual member count from API
+                  boardCount: 0,  // Add actual board count from API
+                  visibility: 'private', // Default or from API
+                  color: '#0079bf' // Default color
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
