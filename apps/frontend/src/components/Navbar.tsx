@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 import { Moon, LogOut, User, Settings, Sun } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,31 +15,35 @@ import {
 import { useTheme } from "next-themes";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-export const Navbar = () => {
+interface NavbarProps {
+  className?: string;
+}
+
+export const Navbar = ({ className }: NavbarProps) => {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
-  
+
   // Add logout function
   const handleLogout = () => {
     // Add your logout logic here
     // For example, clear authentication tokens, session, etc.
     console.log("Logging out...");
-    
+
     // If using NextAuth, you might do:
     // signOut({ callbackUrl: '/login' });
-    
+
     // For custom auth, redirect to login
     router.push("/login");
   };
-  
+
   return (
-    <nav className="p-1.5 flex items-center justify-between bg-gray-100">
+    <nav className={`p-1.5 flex items-center justify-between bg-gray-100 ${className}`}>
       {/* LEFT */}
       <SidebarTrigger />
       {/* RIGHT */}
       <div className="flex items-center gap-4">
         <Link href="/">Dashboard</Link>
-        
+
         {/* THEME MENU */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -86,7 +90,7 @@ export const Navbar = () => {
             </DropdownMenuItem>
 
             {/* Fixed: Removed variant prop and corrected onClick */}
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
               onClick={handleLogout}
             >
