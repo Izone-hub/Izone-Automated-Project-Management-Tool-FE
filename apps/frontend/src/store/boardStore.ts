@@ -1,4 +1,4 @@
-// src/store/boardStore.ts - SIMPLIFIED WORKING VERSION
+// src/store/boardStore.ts - COMPLETE FRONTEND-ONLY VERSION
 import { create } from "zustand";
 import { persist } from 'zustand/middleware';
 import { Board, List, Card } from "@/lib/types";
@@ -8,10 +8,11 @@ interface BoardState {
   boards: Board[];
   
   // Board operations
-  addBoard: (boardData: Omit<Board, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  addBoard: (boardData: Omit<Board, 'id' | 'createdAt' | 'updatedAt'>) => string; // Returns boardId
   updateBoard: (boardId: string, data: Partial<Board>) => void;
   removeBoard: (boardId: string) => void;
   getBoard: (boardId: string) => Board | undefined;
+  getWorkspaceBoards: (workspaceId: string) => Board[];
   
   // List operations
   addList: (boardId: string, listTitle: string) => void;
@@ -22,6 +23,9 @@ interface BoardState {
   addCard: (boardId: string, listId: string, cardTitle: string) => void;
   updateCard: (boardId: string, listId: string, cardId: string, data: Partial<Card>) => void;
   removeCard: (boardId: string, listId: string, cardId: string) => void;
+  
+  // Helper to get board count
+  getWorkspaceBoardCount: (workspaceId: string) => number;
 }
 
 export const useBoardStore = create<BoardState>()(
@@ -30,17 +34,21 @@ export const useBoardStore = create<BoardState>()(
       boards: [],
 
       // Create board with all required fields
-      addBoard: (boardData) => set((state) => {
+      addBoard: (boardData) => {
         const newBoard: Board = {
           id: uuidv4(),
           ...boardData,
-          lists: boardData.lists || [], // Ensure lists exists
+          lists: boardData.lists || [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
         
-        return { boards: [...state.boards, newBoard] };
-      }),
+        set((state) => ({
+          boards: [...state.boards, newBoard]
+        }));
+        
+        return newBoard.id;
+      },
       
       updateBoard: (boardId, data) => set((state) => ({
         boards: state.boards.map(b => b.id === boardId ? { 
@@ -55,8 +63,16 @@ export const useBoardStore = create<BoardState>()(
       })),
       
       getBoard: (boardId) => get().boards.find(b => b.id === boardId),
+      
+      getWorkspaceBoards: (workspaceId) => {
+        return get().boards.filter(board => board.workspaceId === workspaceId);
+      },
+      
+      getWorkspaceBoardCount: (workspaceId) => {
+        return get().boards.filter(board => board.workspaceId === workspaceId).length;
+      },
 
-      // Add list with proper List object
+      // List operations
       addList: (boardId, listTitle) => set((state) => ({
         boards: state.boards.map(b => {
           if (b.id !== boardId) return b;
@@ -102,7 +118,7 @@ export const useBoardStore = create<BoardState>()(
         })
       })),
 
-      // Add card
+      // Card operations
       addCard: (boardId, listId, cardTitle) => set((state) => ({
         boards: state.boards.map(b => {
           if (b.id !== boardId) return b;
@@ -172,6 +188,18 @@ export const useBoardStore = create<BoardState>()(
     }
   )
 );
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
