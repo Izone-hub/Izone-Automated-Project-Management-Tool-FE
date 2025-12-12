@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkspaces } from '@/hooks/useWorkspace';
-import { ArrowLeft, Globe, Lock, Users, Palette } from 'lucide-react';
+import { ArrowLeft, Palette } from 'lucide-react';
 import Link from 'next/link';
 
 const colorOptions = [
@@ -20,7 +20,7 @@ const colorOptions = [
 
 export default function CreateWorkspacePage() {
   const router = useRouter();
-  const { createWorkspace, loadWorkspaces } = useWorkspace();
+  const { createWorkspace, loadWorkspaces } = useWorkspaces(); // Fixed: should be useWorkspaces()
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -51,18 +51,19 @@ export default function CreateWorkspacePage() {
     setError(null);
     
     try {
-      // Call createWorkspace with only name and description
-      // Backend will automatically set owner_id from current user
+      // Create workspace using the workspace hook
       const newWorkspace = await createWorkspace({
         name: name.trim(),
         description: description.trim() || undefined,
+        // If your workspace API accepts color, include it
+        // color: color, // Uncomment if backend accepts color
       });
 
       // Refresh workspaces list
       await loadWorkspaces();
 
-      // Redirect to the dashboard or workspace list
-      router.push("/dashboard"); // Change this to your actual dashboard route
+      // Redirect to the NEWLY CREATED workspace page
+      router.push(`/workspace/${newWorkspace.id}`);
       
     } catch (err: any) {
       console.error('Failed to create workspace:', err);
@@ -95,7 +96,7 @@ export default function CreateWorkspacePage() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link 
-            href="/dashboard" // Change this to your dashboard route
+            href="/dashboard"
             className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -177,12 +178,12 @@ export default function CreateWorkspacePage() {
               </p>
             </div>
 
-            {/* Color Theme - Optional */}
+            {/* Color Theme - Optional (Frontend only) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 <span className="flex items-center gap-2">
                   <Palette className="w-4 h-4" />
-                  Color Theme (Optional)
+                  Color Theme (Frontend only)
                 </span>
               </label>
               <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
@@ -211,14 +212,14 @@ export default function CreateWorkspacePage() {
                 ))}
               </div>
               <p className="text-sm text-gray-500 mt-2">
-                Choose a color that represents your workspace (frontend only)
+                Choose a color that represents your workspace (frontend visual only)
               </p>
             </div>
 
             {/* Form Actions */}
             <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
               <Link
-                href="/dashboard" // Change this to your dashboard route
+                href="/dashboard"
                 className={`px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium ${
                   isSubmitting ? 'opacity-50 pointer-events-none' : ''
                 }`}
@@ -249,7 +250,7 @@ export default function CreateWorkspacePage() {
         {/* Help Text */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
-            Workspaces are free to create. You can invite members and create projects within your workspace.
+            Workspaces are free to create. You can invite members and create boards within your workspace.
           </p>
         </div>
       </main>
