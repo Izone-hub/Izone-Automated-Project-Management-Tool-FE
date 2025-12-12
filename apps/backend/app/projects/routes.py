@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
-
 from ..db.session import get_db
 from .crud import create_project, get_project, list_projects, update_project, delete_project, archive_project
 from .schema import ProjectCreate, ProjectUpdate, ProjectOut
