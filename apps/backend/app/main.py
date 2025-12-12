@@ -7,6 +7,7 @@ from .workspaces import routes as workspace_router
 from .projects import routes as project_router
 from .tasks import routes as task_router
 from .comments import routes as comment_router
+from .attachments import routes as attachment_router
 
 
 # Create all database tables
@@ -21,6 +22,7 @@ app.include_router(workspace_router.router)
 app.include_router(project_router.router)
 app.include_router(task_router.router)
 app.include_router(comment_router.router)
+app.include_router(attachment_router.router)
 
 # Configure CORS
 
