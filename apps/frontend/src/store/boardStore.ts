@@ -349,13 +349,7 @@ interface List {
 }
 type BoardWithLists = Board & { lists?: List[] };
 
-// Default lists scaffold
-const DEFAULT_LISTS: Omit<List, "board_id" | "cards">[] = [
-  { id: "todo", title: "To Do", status: "todo", position: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "in-progress", title: "In Progress", status: "in-progress", position: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "review", title: "Review", status: "review", position: 2, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "done", title: "Done", status: "done", position: 3, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-];
+
 
 interface BoardStore {
   boards: BoardWithLists[];
@@ -409,11 +403,7 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       const backendBoards = await boardsAPI.getWorkspaceBoards(workspaceId);
       const boardsWithLists: BoardWithLists[] = backendBoards.map((board) => ({
         ...board,
-        lists: DEFAULT_LISTS.map((list) => ({
-          ...list,
-          board_id: board.id,
-          cards: [],
-        })),
+        lists: [],
       }));
       set({ boards: boardsWithLists, isLoading: false });
     } catch (error: any) {
@@ -446,9 +436,9 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
   },
 
   addBoard: (boardData: CreateBoardData & { workspaceId?: string; background?: string; color?: string; privacy?: string }) => {
-    const newBoardId = Date.now().toString();
+    const tempId = Date.now().toString();
     const newBoard: BoardWithLists = {
-      id: newBoardId,
+      id: tempId,
       name: boardData.name,
       title: boardData.name,
       description: boardData.description,
@@ -461,13 +451,13 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       created_by: "current_user",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      lists: DEFAULT_LISTS.map((list) => ({
-        ...list,
-        board_id: newBoardId,
-        cards: [],
-      })),
+      lists: [],
     };
 
+    // 1. Optimistic Update
+    set((state: BoardStore) => ({ boards: [newBoard, ...state.boards] }));
+
+    // 2. Background API Call
     boardsAPI
       .createBoard({
         name: boardData.name,
@@ -475,12 +465,27 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
         background_color: boardData.background || boardData.color || "#0079bf",
         workspace_id: boardData.workspaceId || boardData.workspace_id || "default",
       })
+      .then((realBoard) => {
+        console.log("✅ Board created on backend. Swapping ID:", tempId, "->", realBoard.id);
+
+        // 3. Swap Temp ID with Real ID
+        set((state: BoardStore) => ({
+          boards: state.boards.map((b) => {
+            if (b.id === tempId) {
+              // Keep any lists or local changes, but swap ID
+              return { ...b, ...realBoard, id: realBoard.id };
+            }
+            return b;
+          })
+        }));
+      })
       .catch((error) => {
-        console.error("Backend create failed:", error);
+        console.error("❌ Backend create failed:", error);
+        // Rollback on failure could be done here, 
+        // but often better to keep optimistic state and show error toast
       });
 
-    set((state: BoardStore) => ({ boards: [newBoard, ...state.boards] }));
-    return newBoardId;
+    return tempId;
   },
 
   addList: (boardId: string, title: string) => {
@@ -488,11 +493,11 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       boards: state.boards.map((board: BoardWithLists) => {
         if (board.id !== boardId) return board;
         const newList: List = {
-          id: Date.now().toString(),
+          id: `list-${Date.now()}`,
           title,
           position: board.lists?.length || 0,
           board_id: boardId,
-          status: "todo",
+          status: "todo", // Default status for validation, but UI uses list ID
           cards: [],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
