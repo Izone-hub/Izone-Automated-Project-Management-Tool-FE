@@ -84,19 +84,25 @@ def add_member(db: Session, workspace_id: UUID, data: MemberAdd, requester_id: U
     if not is_admin(db, workspace_id, requester_id):
         raise HTTPException(status_code=403, detail="Only admin can add members")
 
-    if not get_workspace_by_id(db, workspace_id):
+    workspace = get_workspace_by_id(db, workspace_id)
+    if not workspace:
         raise HTTPException(status_code=404, detail="Workspace not found")
 
     _user_exists(db, data.user_id)
 
-    # Prevent duplicate
-    exists = db.query(WorkspaceMember).filter(
+    member = db.query(WorkspaceMember).filter(
         WorkspaceMember.workspace_id == workspace_id,
         WorkspaceMember.user_id == data.user_id
     ).first()
-    if exists:
-        raise HTTPException(status_code=400, detail="User is already a member")
 
+    if member:
+        # User exists → update role
+        member.role = data.role
+        db.commit()
+        db.refresh(member)
+        return member
+
+    # User does not exist → create new member
     member = WorkspaceMember(
         workspace_id=workspace_id,
         user_id=data.user_id,
@@ -106,6 +112,7 @@ def add_member(db: Session, workspace_id: UUID, data: MemberAdd, requester_id: U
     db.commit()
     db.refresh(member)
     return member
+
 
 
 def remove_member(db: Session, workspace_id: UUID, user_id: UUID, requester_id: UUID) -> None:
