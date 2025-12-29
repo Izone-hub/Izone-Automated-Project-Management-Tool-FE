@@ -36,7 +36,7 @@ export const Navbar = ({ className }: NavbarProps) => {
   };
 
   return (
-    <nav className={`p-1.5 flex items-center justify-between bg-gray-100 ${className}`}>
+    <nav className={`sticky top-0 z-40 p-1.5 flex items-center justify-between bg-gray-100 border-b shadow-sm ${className}`}>
       <SidebarTrigger />
       <div className="flex items-center gap-4">
         <Link href="/">Dashboard</Link>

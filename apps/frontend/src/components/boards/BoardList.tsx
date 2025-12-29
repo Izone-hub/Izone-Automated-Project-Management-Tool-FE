@@ -9,10 +9,10 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 
 export const BoardList = ({ boardId }: { boardId: string }) => {
-  const board = useBoardStore((state) => 
+  const board = useBoardStore((state) =>
     state.boards.find(b => b.id === boardId)
   );
-  
+
   const [activeAddCardListId, setActiveAddCardListId] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<{ listId: string; card: any } | null>(null);
 
@@ -26,24 +26,17 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
 
   const lists = board.lists || [];
 
-  // Debug: Log what we're about to render
-  console.log("BoardList rendering:", {
-    boardId,
-    listsCount: lists.length,
-    lists: lists.map(l => ({ id: l.id, title: l.title, cardsCount: l.cards?.length || 0 }))
-  });
-
   return (
     <div className="p-4">
       <div className="flex gap-4 overflow-x-auto min-h-[calc(100vh-200px)] pb-4">
         {lists.map((list) => {
-          if (!list) return null; // Skip null lists
-          
+          if (!list) return null;
+
           const cards = list.cards || [];
-          
+
           return (
-            <div 
-              key={list.id} 
+            <div
+              key={list.id}
               className="min-w-72 bg-gray-50 rounded-lg shadow-sm flex flex-col h-fit border flex-shrink-0"
             >
               {/* List Header */}
@@ -53,27 +46,24 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
                   {cards.length} cards
                 </span>
               </div>
-              
+
               {/* Cards */}
               <div className="p-2 flex-1 min-h-[100px] space-y-2">
-                {cards.map((card) => {
-                  if (!card) return null; // Skip null cards
-                  return (
-                    <CardItem 
-                      key={card.id} 
-                      boardId={boardId} 
-                      listId={list.id} 
-                      card={card}
-                      onClick={() => setActiveCard({ listId: list.id, card })}
-                    />
-                  );
-                })}
+                {cards.map((card) => (
+                  <CardItem
+                    key={card.id}
+                    boardId={boardId}
+                    listId={list.id}
+                    card={card}
+                    onClick={() => setActiveCard({ listId: list.id, card })}
+                  />
+                ))}
               </div>
-              
+
               {/* Add Card Section */}
               <div className="p-2">
                 {activeAddCardListId === list.id ? (
-                  <AddCard 
+                  <AddCard
                     boardId={boardId}
                     listId={list.id}
                     onClose={() => setActiveAddCardListId(null)}
@@ -91,8 +81,7 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
             </div>
           );
         })}
-        
-        {/* Add List Component */}
+
         <AddList boardId={boardId} />
       </div>
 

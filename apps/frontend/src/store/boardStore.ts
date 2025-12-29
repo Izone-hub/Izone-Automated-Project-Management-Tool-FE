@@ -108,9 +108,9 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
         lists: (board as any).lists || [],
       };
 
-      set((state) => ({
+      set((state: BoardStore) => ({
         boards: [
-          ...state.boards.filter((b) => b.id !== boardId),
+          ...state.boards.filter((b: BoardWithLists) => b.id !== boardId),
           boardWithLists
         ],
         isLoading: false
@@ -190,7 +190,7 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       .then((realBoard) => {
         console.log("✅ Board created on backend. Swapping ID:", tempId, "->", realBoard.id);
         set((state: BoardStore) => ({
-          boards: state.boards.map((b) => {
+          boards: state.boards.map((b: BoardWithLists) => {
             if (b.id === tempId) {
               return { ...b, ...realBoard, id: realBoard.id };
             }
@@ -207,7 +207,7 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
   },
 
   addList: async (boardId: string, title: string) => {
-    const board = get().boards.find(b => b.id === boardId);
+    const board = get().boards.find((b: BoardWithLists) => b.id === boardId);
     const position = board?.lists?.length || 0;
 
     // Optimistic Update
@@ -223,8 +223,8 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       updated_at: new Date().toISOString(),
     };
 
-    set((state) => ({
-      boards: state.boards.map((b) =>
+    set((state: BoardStore) => ({
+      boards: state.boards.map((b: BoardWithLists) =>
         b.id === boardId ? { ...b, lists: [...(b.lists || []), newList] } : b
       )
     }));
@@ -233,20 +233,20 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       const apiList = await listsAPI.createList(boardId, { title, position });
       const realList = mapApiListToList(apiList);
 
-      set((state) => ({
-        boards: state.boards.map((b) =>
+      set((state: BoardStore) => ({
+        boards: state.boards.map((b: BoardWithLists) =>
           b.id === boardId ? {
             ...b,
-            lists: b.lists?.map(l => l.id === tempListId ? { ...realList, cards: [] } : l)
+            lists: b.lists?.map((l: List) => l.id === tempListId ? { ...realList, cards: [] } : l)
           } : b
         )
       }));
     } catch (error) {
       console.error("Failed to add list:", error);
       // Revert optimistic update
-      set((state) => ({
-        boards: state.boards.map(b =>
-          b.id === boardId ? { ...b, lists: b.lists?.filter(l => l.id !== tempListId) } : b
+      set((state: BoardStore) => ({
+        boards: state.boards.map((b: BoardWithLists) =>
+          b.id === boardId ? { ...b, lists: b.lists?.filter((l: List) => l.id !== tempListId) } : b
         )
       }));
     }
@@ -254,11 +254,11 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
 
   updateList: async (boardId: string, listId: string, updates: Partial<List>) => {
     // Optimistic
-    set((state) => ({
-      boards: state.boards.map((b) =>
+    set((state: BoardStore) => ({
+      boards: state.boards.map((b: BoardWithLists) =>
         b.id === boardId ? {
           ...b,
-          lists: b.lists?.map(l => l.id === listId ? { ...l, ...updates } : l)
+          lists: b.lists?.map((l: List) => l.id === listId ? { ...l, ...updates } : l)
         } : b
       )
     }));
@@ -277,9 +277,9 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
   deleteList: async (boardId: string, listId: string) => {
     // Optimistic
     const previousLists = get().boards.find(b => b.id === boardId)?.lists;
-    set((state) => ({
-      boards: state.boards.map((b) =>
-        b.id === boardId ? { ...b, lists: b.lists?.filter(l => l.id !== listId) } : b
+    set((state: BoardStore) => ({
+      boards: state.boards.map((b: BoardWithLists) =>
+        b.id === boardId ? { ...b, lists: b.lists?.filter((l: List) => l.id !== listId) } : b
       )
     }));
 
@@ -406,7 +406,6 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
   },
 
   removeCard: async (boardId: string, listId: string, cardId: string) => {
-    // Optimistic
     const previousBoard = get().boards.find(b => b.id === boardId);
 
     set((state: BoardStore) => ({
@@ -426,7 +425,6 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       await cardsAPI.deleteCard(listId, cardId);
     } catch (error) {
       console.error("Backend delete card failed:", error);
-      // Revert 
       if (previousBoard) {
         set((state) => ({
           boards: state.boards.map(b => b.id === boardId ? previousBoard : b)

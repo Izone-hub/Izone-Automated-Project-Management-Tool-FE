@@ -2,10 +2,12 @@
 'use client';
 
 import { useState } from 'react';
-import { List, Card } from '@/types';
+import { List } from '@/types';
+import { Card } from '@/types/card';
 import { ListHeader } from './ListHeader';
 import { AddCardForm } from './AddCardForm';
 import { CardComponent } from '../Card/Card';
+import { CardModal } from '../Card/CardModal';
 
 interface ListComponentProps {
   list: List & { cards?: Card[] };
@@ -52,78 +54,99 @@ export const ListComponent: React.FC<ListComponentProps> = ({
     }
   };
 
+  const handleCardUpdate = async (cardId: string, data: any) => {
+    // Handle special delete flag
+    if (data._delete) {
+      await onDeleteCard(cardId);
+      setActiveCard(null);
+      return;
+    }
+    await onUpdateCard(cardId, data);
+  };
+
   const sortedCards = [...(list.cards || [])].sort((a, b) => a.position - b.position);
 
   return (
-    <div className="w-72 bg-gray-50 rounded-lg shadow-sm flex flex-col h-fit border border-gray-200 flex-shrink-0">
-      {/* List Header */}
-      <div className="p-3 bg-gray-100 rounded-t-lg">
-        {editingTitle ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={tempTitle}
-              onChange={(e) => setTempTitle(e.target.value)}
-              onBlur={handleTitleUpdate}
-              onKeyDown={(e) => e.key === 'Enter' && handleTitleUpdate()}
-              className="flex-1 px-2 py-1 border rounded text-sm font-medium"
-              autoFocus
+    <>
+      <div className="w-72 bg-gray-50 rounded-lg shadow-sm flex flex-col h-fit border border-gray-200 flex-shrink-0">
+        {/* List Header */}
+        <div className="p-3 bg-gray-100 rounded-t-lg">
+          {editingTitle ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={tempTitle}
+                onChange={(e) => setTempTitle(e.target.value)}
+                onBlur={handleTitleUpdate}
+                onKeyDown={(e) => e.key === 'Enter' && handleTitleUpdate()}
+                className="flex-1 px-2 py-1 border rounded text-sm font-medium"
+                autoFocus
+              />
+              <button
+                onClick={handleTitleUpdate}
+                className="px-2 py-1 bg-blue-600 text-white rounded text-xs"
+              >
+                Save
+              </button>
+            </div>
+          ) : (
+            <ListHeader
+              title={list.title}
+              cardCount={list.cards?.length || 0}
+              onEditTitle={() => setEditingTitle(true)}
+              onDeleteList={onDeleteList}
             />
+          )}
+        </div>
+
+        {/* Cards Container */}
+        <div className="p-2 flex-1 min-h-[100px] space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
+          {sortedCards.length === 0 ? (
+            <div className="text-center py-4 text-gray-400 text-sm">
+              No cards yet
+            </div>
+          ) : (
+            sortedCards.map((card) => (
+              <CardComponent
+                key={card.id}
+                card={card}
+                onUpdate={(data) => onUpdateCard(card.id, data)}
+                onDelete={() => onDeleteCard(card.id)}
+                onClick={() => setActiveCard(card)}
+              />
+            ))
+          )}
+        </div>
+
+        {/* Add Card Section */}
+        <div className="p-2 border-t">
+          {isAddingCard ? (
+            <AddCardForm
+              onAddCard={handleAddCard}
+              onCancel={() => setIsAddingCard(false)}
+            />
+          ) : (
             <button
-              onClick={handleTitleUpdate}
-              className="px-2 py-1 bg-blue-600 text-white rounded text-xs"
+              onClick={() => setIsAddingCard(true)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-200 rounded text-sm"
             >
-              Save
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add a card
             </button>
-          </div>
-        ) : (
-          <ListHeader
-            title={list.title}
-            cardCount={list.cards?.length || 0}
-            onEditTitle={() => setEditingTitle(true)}
-            onDeleteList={onDeleteList}
-          />
-        )}
+          )}
+        </div>
       </div>
-      
-      {/* Cards Container */}
-      <div className="p-2 flex-1 min-h-[100px] space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
-        {sortedCards.length === 0 ? (
-          <div className="text-center py-4 text-gray-400 text-sm">
-            No cards yet
-          </div>
-        ) : (
-          sortedCards.map((card) => (
-            <CardComponent
-              key={card.id}
-              card={card}
-              onUpdate={(data) => onUpdateCard(card.id, data)}
-              onDelete={() => onDeleteCard(card.id)}
-              onClick={() => setActiveCard(card)}
-            />
-          ))
-        )}
-      </div>
-      
-      {/* Add Card Section */}
-      <div className="p-2 border-t">
-        {isAddingCard ? (
-          <AddCardForm
-            onAddCard={handleAddCard}
-            onCancel={() => setIsAddingCard(false)}
-          />
-        ) : (
-          <button
-            onClick={() => setIsAddingCard(true)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-200 rounded text-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add a card
-          </button>
-        )}
-      </div>
-    </div>
+
+      {/* Card Modal - Opens when a card is clicked */}
+      {activeCard && (
+        <CardModal
+          card={activeCard}
+          onUpdate={(data) => handleCardUpdate(activeCard.id, data)}
+          onClose={() => setActiveCard(null)}
+        />
+      )}
+    </>
   );
 };

@@ -1,5 +1,5 @@
 // lib/api/cards.ts
-const API_BASE_URL = "http://localhost:3000/api/backend";
+const API_BASE_URL = "/api/backend";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
