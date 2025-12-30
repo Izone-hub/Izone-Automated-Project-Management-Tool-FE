@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card as CardType } from '@/types';
+import { Card as CardType } from '@/types/card';
 import { Calendar, AlertCircle, Clock, Edit2, Trash2 } from 'lucide-react';
 
 interface CardComponentProps {
@@ -58,12 +58,12 @@ export const CardComponent: React.FC<CardComponentProps> = ({
 
   const getDueDateStatus = () => {
     if (!card.due_date) return null;
-    
+
     const dueDate = new Date(card.due_date);
     const today = new Date();
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 0) return { text: 'Overdue', color: 'text-red-600' };
     if (diffDays === 0) return { text: 'Today', color: 'text-orange-600' };
     if (diffDays === 1) return { text: 'Tomorrow', color: 'text-yellow-600' };
@@ -113,7 +113,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
         <>
           <div className="flex justify-between items-start mb-2">
             <p className="font-medium text-gray-800 text-sm flex-1">{card.title}</p>
-            
+
             {showActions && (
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
@@ -137,7 +137,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
               </div>
             )}
           </div>
-          
+
           {/* Card Details */}
           <div className="space-y-2">
             {card.description && (
@@ -145,7 +145,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
                 {card.description}
               </p>
             )}
-            
+
             <div className="flex flex-wrap gap-2">
               {/* Priority Badge */}
               {card.priority && card.priority !== 'medium' && (
@@ -153,7 +153,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
                   {card.priority.charAt(0).toUpperCase() + card.priority.slice(1)}
                 </span>
               )}
-              
+
               {/* Due Date */}
               {card.due_date && (
                 <div className="flex items-center gap-1 text-xs text-gray-500">

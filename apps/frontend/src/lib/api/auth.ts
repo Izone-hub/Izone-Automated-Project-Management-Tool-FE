@@ -3,7 +3,7 @@
  * Centralized API calls for authentication operations
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = "/api/backend";
 
 export interface LoginCredentials {
   email: string;
@@ -37,7 +37,6 @@ export interface ApiError {
  */
 export const authApi = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    // TODO: Replace with actual API call
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -47,20 +46,24 @@ export const authApi = {
     });
 
     if (!response.ok) {
-      // Try to parse the JSON body and prefer FastAPI's `detail` field
-      let body: any = {};
+      const rawText = await response.text().catch(() => '');
+      console.error('Login error details:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        body: rawText
+      });
+
+      let message = 'Login failed';
       try {
-        body = await response.json();
+        if (rawText) {
+          const body = JSON.parse(rawText);
+          message = body?.detail || body?.message || message;
+        }
       } catch (e) {
-        // If JSON parsing fails, capture raw text for debugging
-        const raw = await response.text().catch(() => null);
-        console.error('login error raw response:', { status: response.status, raw });
-        const message = raw || 'Login failed';
-        throw new Error(message);
+        message = rawText || message;
       }
-      const message = body?.detail || body?.message || 'Login failed';
-      // log parsed body for debugging
-      // console.error('login error body:', { status: response.status, body });
+
       throw new Error(message);
     }
 
@@ -68,13 +71,13 @@ export const authApi = {
   },
 
   async signup(data: SignupData): Promise<AuthResponse> {
-      //  Combine first and last name into full_name for backend
-  const payload = {
-    email: data.email,
-    full_name: data.Full_Name,
-    password: data.password,
-  };
-    // TODO: Replace with actual API call
+    // Standardize to full_name for backend compatibility
+    const payload = {
+      email: data.email,
+      full_name: data.Full_Name,
+      password: data.password,
+    };
+
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: {
@@ -84,19 +87,24 @@ export const authApi = {
     });
 
     if (!response.ok) {
-      // Prefer FastAPI's `detail` when available so the UI shows a useful message
-      let body: any = {};
+      const rawText = await response.text().catch(() => '');
+      console.error('Signup error details:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        body: rawText
+      });
+
+      let message = 'Signup failed';
       try {
-        body = await response.json();
+        if (rawText) {
+          const body = JSON.parse(rawText);
+          message = body?.detail || body?.message || message;
+        }
       } catch (e) {
-        // If JSON parsing fails, capture raw text for debugging
-        const raw = await response.text().catch(() => null);
-        console.error('signup error raw response:', { status: response.status, raw });
-        const message = raw || 'Signup failed';
-        throw new Error(message);
+        message = rawText || message;
       }
-      const message = body?.detail || body?.message || 'Signup failed';
-      console.error('signup error body:', { status: response.status, body });
+
       throw new Error(message);
     }
 

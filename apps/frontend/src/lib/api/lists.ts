@@ -1,5 +1,5 @@
 // lib/api/lists.ts
-const API_BASE_URL = "http://localhost:3000/api/backend";
+const API_BASE_URL = "/api/backend";
 
 // Get token from localStorage
 function getToken(): string | null {

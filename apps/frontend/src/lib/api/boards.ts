@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = "/api/backend";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -17,13 +17,13 @@ function headers(): HeadersInit {
 async function fetchUserUuidFromServer(): Promise<string | null> {
   try {
     console.log("Fetching user UUID from server...");
-    
+
     const token = localStorage.getItem("auth_token");
     if (!token) {
       console.error("No auth token found");
       return null;
     }
-    
+
     // Try different endpoints
     const endpoints = [
       `${API_BASE_URL}/users/me`,
@@ -31,7 +31,7 @@ async function fetchUserUuidFromServer(): Promise<string | null> {
       `${API_BASE_URL}/profile`,
       `${API_BASE_URL}/user`,
     ];
-    
+
     for (const endpoint of endpoints) {
       try {
         const response = await fetch(endpoint, {
@@ -41,20 +41,20 @@ async function fetchUserUuidFromServer(): Promise<string | null> {
             Authorization: `Bearer ${token}`,
           },
         });
-        
+
         if (response.ok) {
           const userData = await response.json();
           console.log(`User data from ${endpoint}:`, userData);
-          
+
           // Try different field names for UUID
           const uuid = userData?.id || userData?.uuid || userData?.user_id || userData?.sub;
-          
+
           if (uuid && typeof uuid === 'string' && uuid.includes('-')) {
             console.log("Got UUID from API:", uuid);
             localStorage.setItem("user_uuid", uuid);
             return uuid;
           }
-          
+
           // If we got user data but no UUID, check for email
           if (userData?.email) {
             console.log("Got user email, but no UUID. Email:", userData.email);
@@ -66,7 +66,7 @@ async function fetchUserUuidFromServer(): Promise<string | null> {
         continue;
       }
     }
-    
+
     console.error("All endpoints failed to return UUID");
     return null;
   } catch (error) {
@@ -78,11 +78,11 @@ async function fetchUserUuidFromServer(): Promise<string | null> {
 // UPDATED getUserId function with better error handling and server fallback
 async function getUserId(): Promise<string | null> {
   if (typeof window === "undefined") return null;
-  
+
   console.log("=== DEBUG: getUserId() called ===");
-  
+
   const token = localStorage.getItem("auth_token");
-  
+
   // PRIORITY 1: If we have a token, always try to fetch from server first
   // This ensures we get the most up-to-date and valid user ID
   if (token) {
@@ -93,11 +93,11 @@ async function getUserId(): Promise<string | null> {
       return serverUuid;
     }
   }
-  
+
   // PRIORITY 2: Check for cached UUID (but validate it's not the hardcoded dev UUID)
   const cachedUuid = localStorage.getItem("user_uuid");
   const hardcodedDevUuid = "fb1ef640-2cc3-48a8-af5c-502e57bd6c0c";
-  
+
   if (cachedUuid && cachedUuid.includes('-') && cachedUuid !== hardcodedDevUuid) {
     console.log("Using cached UUID:", cachedUuid);
     // Still try to verify it's valid by checking if we have a token
@@ -108,16 +108,16 @@ async function getUserId(): Promise<string | null> {
     }
     return cachedUuid;
   }
-  
+
   // PRIORITY 3: Check user object in localStorage
   const userStr = localStorage.getItem("user");
   let userEmail: string | null = null;
-  
+
   if (userStr) {
     try {
       const user = JSON.parse(userStr);
       console.log("User object from localStorage:", user);
-      
+
       // Check for UUID in various field names
       const possibleUuidFields = ['id', 'uuid', 'user_id', 'sub'];
       for (const field of possibleUuidFields) {
@@ -128,7 +128,7 @@ async function getUserId(): Promise<string | null> {
           return uuid;
         }
       }
-      
+
       // Save email for later use
       userEmail = user?.email || user?.id || null;
       if (userEmail && userEmail.includes('@')) {
@@ -138,7 +138,7 @@ async function getUserId(): Promise<string | null> {
       console.error("Failed to parse user object:", error);
     }
   }
-  
+
   // PRIORITY 4: Decode JWT token (if server fetch didn't work)
   if (token) {
     try {
@@ -146,7 +146,7 @@ async function getUserId(): Promise<string | null> {
       if (parts.length === 3) {
         const payload = JSON.parse(atob(parts[1]));
         console.log("JWT payload:", payload);
-        
+
         // Check for UUID in JWT
         const jwtUuid = payload?.sub || payload?.user_id || payload?.id;
         if (jwtUuid && typeof jwtUuid === 'string' && jwtUuid.includes('-') && jwtUuid !== hardcodedDevUuid) {
@@ -154,7 +154,7 @@ async function getUserId(): Promise<string | null> {
           localStorage.setItem("user_uuid", jwtUuid);
           return jwtUuid;
         }
-        
+
         // If no UUID in JWT, get email from JWT
         if (!userEmail) {
           userEmail = payload?.email;
@@ -167,18 +167,18 @@ async function getUserId(): Promise<string | null> {
       console.error("Failed to decode JWT:", error);
     }
   }
-  
+
   // PRIORITY 5: If we have an email but no UUID, try server fetch again
   if (userEmail && userEmail.includes('@') && token) {
     console.log("No UUID found locally. Email present:", userEmail);
     console.log("Attempting to fetch UUID from server again...");
-    
+
     const serverUuid = await fetchUserUuidFromServer();
     if (serverUuid) {
       return serverUuid;
     }
   }
-  
+
   // LAST RESORT: Only use hardcoded UUID if explicitly set in env and no token exists
   // This prevents using invalid UUIDs when we have authentication
   if (!token) {
@@ -193,7 +193,7 @@ async function getUserId(): Promise<string | null> {
       }
     }
   }
-  
+
   console.error("No user UUID available. User might not be logged in or user ID not found in database.");
   return null;
 }
@@ -298,21 +298,21 @@ export const boardsAPI = {
     try {
       // Get user ID - now async
       const userId = await getUserId();
-      
+
       if (!userId) {
         // Debug what's available
         console.error("Authentication Error Details:");
         console.log("user in localStorage:", localStorage.getItem("user"));
         console.log("auth_token exists:", !!localStorage.getItem("auth_token"));
         console.log("user_uuid exists:", !!localStorage.getItem("user_uuid"));
-        
+
         throw new Error("Please login to create a board. No user ID found.");
       }
 
       console.log("Creating board with User ID:", userId);
       console.log("Board data:", data);
       console.log("Full request URL:", `${API_BASE_URL}/projects/?user_id=${userId}`);
-      
+
       const res = await fetch(
         `${API_BASE_URL}/projects/?user_id=${userId}`,
         {
@@ -328,7 +328,7 @@ export const boardsAPI = {
       );
 
       console.log("Response status:", res.status);
-      
+
       if (res.status === 401) {
         // Clear auth data on 401
         localStorage.removeItem("auth_token");
@@ -342,7 +342,7 @@ export const boardsAPI = {
         try {
           errorText = await res.text();
           console.error("API error response body:", errorText);
-          
+
           // Handle specific error messages
           if (errorText.includes("User not found") || errorText.includes('"detail":"User not found"')) {
             // Clear cached UUID if it's invalid
@@ -367,7 +367,7 @@ export const boardsAPI = {
                   }),
                 }
               );
-              
+
               if (retryRes.ok) {
                 const board = await retryRes.json();
                 console.log("✅ Board created successfully after retry:", board);
@@ -394,7 +394,7 @@ export const boardsAPI = {
 
       const board = await res.json();
       console.log("✅ Board created successfully:", board);
-      
+
       return {
         ...board,
         title: board.name,
@@ -405,20 +405,20 @@ export const boardsAPI = {
       };
     } catch (error: any) {
       console.error("❌ Error creating board:", error);
-      
+
       // Enhanced error messages
       if (error.message.includes("Failed to fetch")) {
         throw new Error(
           `Cannot connect to server at ${API_BASE_URL}. Make sure backend is running.`
         );
       }
-      
+
       if (error.message.includes("NetworkError")) {
         throw new Error(
           "Network error. Check your internet connection and make sure CORS is configured on the backend."
         );
       }
-      
+
       // Re-throw the error with the original message
       throw error;
     }
@@ -537,12 +537,12 @@ export const boardsAPI = {
       throw error;
     }
   },
-  
+
   // Clear cached user UUID (useful on logout)
   clearCachedUserUuid(): void {
     localStorage.removeItem("user_uuid");
   },
-  
+
   // Manually set user UUID (useful after login)
   setCachedUserUuid(uuid: string): void {
     if (uuid && uuid.includes('-')) {

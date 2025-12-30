@@ -1,9 +1,20 @@
-// components/board/Card/CardModal.tsx
 'use client';
 
-import { useState } from 'react';
-import { Card as CardType } from '@/types';
-import { X, Calendar, Tag, Users, Paperclip, MessageSquare, Save, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Card as CardType } from '@/types/card';
+import { X, Calendar, Tag, Users, Paperclip, Save, Clock } from 'lucide-react';
+import CommentsList from '@/components/comments/CommentsList';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface CardModalProps {
   card: CardType;
@@ -22,6 +33,15 @@ export const CardModal: React.FC<CardModalProps> = ({
   const [priority, setPriority] = useState(card.priority);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -30,7 +50,7 @@ export const CardModal: React.FC<CardModalProps> = ({
       if (description !== card.description) updates.description = description;
       if (dueDate !== card.due_date) updates.due_date = dueDate;
       if (priority !== card.priority) updates.priority = priority;
-      
+
       if (Object.keys(updates).length > 0) {
         await onUpdate(updates);
       }
@@ -42,13 +62,11 @@ export const CardModal: React.FC<CardModalProps> = ({
   };
 
   const handleDelete = async () => {
-    if (confirm('Are you sure you want to delete this card?')) {
-      try {
-        await onUpdate({ _delete: true }); // Special flag for delete
-        onClose();
-      } catch (error) {
-        console.error('Failed to delete card:', error);
-      }
+    try {
+      await onUpdate({ _delete: true }); // Special flag for delete
+      onClose();
+    } catch (error) {
+      console.error('Failed to delete card:', error);
     }
   };
 
@@ -60,9 +78,12 @@ export const CardModal: React.FC<CardModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div 
-        className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -78,14 +99,18 @@ export const CardModal: React.FC<CardModalProps> = ({
               />
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500">
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                <span>Created {new Date(card.created_at).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                <span>By {card.created_by}</span>
-              </div>
+              {card.created_at && (
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>Created {new Date(card.created_at).toLocaleDateString()}</span>
+                </div>
+              )}
+              {card.created_by && (
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  <span>By {card.created_by}</span>
+                </div>
+              )}
             </div>
           </div>
           <button
@@ -115,49 +140,25 @@ export const CardModal: React.FC<CardModalProps> = ({
             </div>
 
             {/* Comments */}
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
-                <span>Comments</span>
-              </h3>
-              <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="font-medium text-blue-600">
-                      {card.created_by.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <textarea
-                      placeholder="Write a comment..."
-                      className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows={2}
-                    />
-                    <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                      Save
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <CommentsList cardId={card.id} />
           </div>
 
           {/* Right Column - Actions */}
           <div className="space-y-4">
             <h3 className="font-semibold text-gray-700">Add to card</h3>
-            
+
             {/* Members */}
             <button className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-100 rounded-lg">
               <Users className="w-5 h-5 text-gray-500" />
               <span>Members</span>
             </button>
-            
+
             {/* Labels */}
             <button className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-100 rounded-lg">
               <Tag className="w-5 h-5 text-gray-500" />
               <span>Labels</span>
             </button>
-            
+
             {/* Due Date */}
             <div className="p-3 border rounded-lg">
               <h4 className="font-medium mb-2 flex items-center gap-2">
@@ -171,7 +172,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                 className="w-full p-2 border rounded mb-2"
               />
             </div>
-            
+
             {/* Priority */}
             <div className="p-3 border rounded-lg">
               <h4 className="font-medium mb-2">Priority</h4>
@@ -187,7 +188,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                 ))}
               </div>
             </div>
-            
+
             {/* Attachments */}
             <button className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-100 rounded-lg">
               <Paperclip className="w-5 h-5 text-gray-500" />
@@ -207,12 +208,33 @@ export const CardModal: React.FC<CardModalProps> = ({
               <Save className="w-4 h-4" />
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              Delete Card
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Delete Card
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete this card
+                    and remove its data from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
           <button
             onClick={onClose}
