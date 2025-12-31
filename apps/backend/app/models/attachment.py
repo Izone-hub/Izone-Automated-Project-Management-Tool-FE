@@ -14,4 +14,4 @@ class Attachment(Base):
     task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id"), nullable=False)
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    task = relationship("Task", back_populates="attachments")
+    card = relationship("Card", back_populates="attachments")
