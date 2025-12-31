@@ -1,9 +1,17 @@
 // lib/api/comments.ts
 const API_BASE_URL = "/api/backend";
+console.log("Comments API Base URL:", API_BASE_URL);
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("auth_token");
+  const localToken = localStorage.getItem("auth_token");
+  if (localToken) return localToken;
+
+  // Fallback: Try to get token from cookie
+  const match = document.cookie.match(/(^| )auth_token=([^;]+)/);
+  if (match) return match[2];
+
+  return null;
 }
 
 function headers(): HeadersInit {
@@ -37,11 +45,15 @@ export const commentsAPI = {
     try {
       const res = await fetch(
         `${API_BASE_URL}/cards/${cardId}/comments/?skip=${skip}&limit=${limit}`,
-        { headers: headers() }
+        {
+          headers: headers(),
+          credentials: "include"
+        }
       );
 
       if (res.status === 401) {
-        console.warn("Unauthenticated comment access");
+        const text = await res.text();
+        console.warn("Unauthenticated comment access. Debug:", text);
         return [];
       }
 
@@ -58,6 +70,14 @@ export const commentsAPI = {
 
   // Create a new comment
   async createComment(cardId: string, content: string): Promise<Comment> {
+    const token = getToken();
+    if (!token) {
+      const ls = typeof window !== 'undefined' ? !!localStorage.getItem("auth_token") : "N/A";
+      const cookies = typeof document !== 'undefined' ? document.cookie : "";
+      console.error("Client Auth Debug:", { ls, cookies });
+      throw new Error(`Client Error: You appear logged out. (LS: ${ls}, Cookies: ${cookies.length > 0 ? "Present" : "Empty"})`);
+    }
+
     try {
       const res = await fetch(
         `${API_BASE_URL}/cards/${cardId}/comments/`,
@@ -65,11 +85,14 @@ export const commentsAPI = {
           method: "POST",
           headers: headers(),
           body: JSON.stringify({ card_id: cardId, content }),
+          credentials: "include"
         }
       );
 
       if (res.status === 401) {
-        throw new Error("You must be logged in to post a comment.");
+        const text = await res.text();
+        console.error("Auth Error (Create):", text);
+        throw new Error(`Login failed: ${text}`);
       }
 
       if (!res.ok) {
@@ -93,11 +116,14 @@ export const commentsAPI = {
           method: "PATCH",
           headers: headers(),
           body: JSON.stringify({ content }),
+          credentials: "include"
         }
       );
 
       if (res.status === 401) {
-        throw new Error("You must be logged in to edit this comment.");
+        const text = await res.text();
+        console.error("Auth Error (Update):", text);
+        throw new Error(`Login failed: ${text}`);
       }
 
       if (!res.ok) {
@@ -120,11 +146,14 @@ export const commentsAPI = {
         {
           method: "DELETE",
           headers: headers(),
+          credentials: "include"
         }
       );
 
       if (res.status === 401) {
-        throw new Error("You must be logged in to delete this comment.");
+        const text = await res.text();
+        console.error("Auth Error (Delete):", text);
+        throw new Error(`Login failed: ${text}`);
       }
 
       if (!res.ok) {

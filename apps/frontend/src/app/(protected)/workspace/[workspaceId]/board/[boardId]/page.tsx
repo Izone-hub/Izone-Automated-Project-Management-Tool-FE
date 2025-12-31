@@ -215,11 +215,11 @@ export default function BoardPage() {
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Board not found</h2>
           <p className="text-gray-600 mb-6">The board you're looking for doesn't exist or you don't have access.</p>
           <button
-            onClick={() => router.push(`/workspace/${workspaceId}`)}
+            onClick={() => router.push('/dashboard')}
             className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 mx-auto"
           >
             <ArrowLeft size={20} />
-            Back to Workspace
+            Back to Dashboard
           </button>
         </div>
       </div>

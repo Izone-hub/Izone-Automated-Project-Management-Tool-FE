@@ -21,6 +21,7 @@ export interface Board {
   background: string;
   description?: string;
   lists: List[]; // REQUIRED
+  workspace_id?: string; // Workspace this board belongs to
   createdAt: string;
   updatedAt: string;
 }

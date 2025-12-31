@@ -43,16 +43,13 @@ export const authApi = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(credentials),
+      credentials: "include"
     });
 
     if (!response.ok) {
       const rawText = await response.text().catch(() => '');
-      console.error('Login error details:', {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url,
-        body: rawText
-      });
+      console.error(`Login failed. Status: ${response.status} ${response.statusText}`);
+      console.error('Login error body:', rawText);
 
       let message = 'Login failed';
       try {
@@ -64,7 +61,7 @@ export const authApi = {
         message = rawText || message;
       }
 
-      throw new Error(message);
+      throw new Error(`Login failed (${response.status}): ${message}`);
     }
 
     return response.json();

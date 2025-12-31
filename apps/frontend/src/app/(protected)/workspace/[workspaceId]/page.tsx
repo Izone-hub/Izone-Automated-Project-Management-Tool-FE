@@ -142,8 +142,13 @@ export default function WorkspaceDetailPage() {
 
   const currentWorkspace = getWorkspaceById(workspaceId);
 
-  // Removed redundant retry loop that causes infinite fetching if workspace is not found
-  // The useWorkspaces hook already loads data on mount.
+  // Retry loading if workspace not found (handles store hydration timing)
+  useEffect(() => {
+    if (!currentWorkspace && !loading && workspaceId) {
+      // Workspace not in store, try reloading
+      reload();
+    }
+  }, [currentWorkspace, loading, workspaceId, reload]);
 
   // ADD THIS: Fetch boards when workspace loads
   useEffect(() => {
@@ -209,11 +214,11 @@ export default function WorkspaceDetailPage() {
 
             <div className="flex items-center gap-6 text-sm text-gray-500 mt-4">
               <div>
-                Created: {new Date(currentWorkspace.created_at).toLocaleDateString()}
+                Created: {new Date(currentWorkspace.createdAt).toLocaleDateString()}
               </div>
               <div>
-                Updated: {currentWorkspace.updated_at ?
-                  new Date(currentWorkspace.updated_at).toLocaleDateString() : 'Never'}
+                Updated: {currentWorkspace.updatedAt ?
+                  new Date(currentWorkspace.updatedAt).toLocaleDateString() : 'Never'}
               </div>
             </div>
           </div>

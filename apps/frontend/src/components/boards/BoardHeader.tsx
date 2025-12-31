@@ -12,9 +12,10 @@ import { useParams } from 'next/navigation';
 export const BoardHeader = ({ board }: { board: Board }) => {
   const { updateBoard } = useBoardStore();
   const { getWorkspaceById } = useWorkspaces();
-  const params = useParams();
-  const workspaceId = params.workspaceId as string;
-  const workspace = workspaceId ? getWorkspaceById(workspaceId) : null;
+
+  // Use the board's actual workspace_id, not the URL param
+  const realWorkspaceId = board?.workspace_id;
+  const workspace = realWorkspaceId ? getWorkspaceById(realWorkspaceId) : null;
 
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(board?.name || 'Untitled Board');
@@ -68,13 +69,13 @@ export const BoardHeader = ({ board }: { board: Board }) => {
       <div className="max-w-7xl mx-auto px-6 py-3">
         {/* Breadcrumb Navigation - Workspace Link Only */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-          {workspaceId && workspace && (
+          {realWorkspaceId && (
             <Link
-              href={`/workspace/${workspaceId}`}
+              href={`/workspace/${realWorkspaceId}`}
               className="hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition-colors flex items-center gap-1.5 font-medium"
             >
               <Layout size={14} />
-              {workspace.name}
+              {workspace?.name || 'Workspace'}
             </Link>
           )}
           <ChevronRight size={14} className="text-gray-300" />
@@ -100,9 +101,9 @@ export const BoardHeader = ({ board }: { board: Board }) => {
             </h1>
           )}
 
-          {/* Back to Workspace Link */}
+          {/* Back to Workspace Link - Use real workspace ID */}
           <Link
-            href="/dashboard"
+            href={realWorkspaceId ? `/workspace/${realWorkspaceId}` : '/dashboard'}
             className="text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1.5 text-xs font-medium min-w-fit whitespace-nowrap ml-2"
           >
             <ArrowLeft size={14} />
