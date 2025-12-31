@@ -117,7 +117,7 @@
 import React, { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useWorkspaces } from '@/hooks/useWorkspace';
-import { useBoardStore } from '@/store/boardStore'; // ADD THIS
+import { useBoardStore } from '@/store/boardStore';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
