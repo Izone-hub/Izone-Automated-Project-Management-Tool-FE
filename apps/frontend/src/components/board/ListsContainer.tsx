@@ -1,11 +1,33 @@
-// components/board/ListsContainer.tsx - UPDATED WITH CORRECT EXPORT
+// components/board/ListsContainer.tsx - UPDATED WITH DND-KIT
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { listsAPI, List } from '@/lib/api/lists'; // Import List from API
 import { cardsAPI } from '@/lib/api/cards';
 import { ListComponent } from './List/List';
 import { AddListButton } from './List/AddListButton';
+import { CardComponent } from './Card/Card';
+import { Card } from '@/types/card';
+import { createPortal } from 'react-dom';
+
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragOverEvent,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface ListsContainerProps {
   projectId: string;  // This is your boardId
@@ -16,6 +38,21 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // DND States
+  const [activeColumn, setActiveColumn] = useState<List | null>(null);
+  const [activeCard, setActiveCard] = useState<Card | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3, // 3px movement required before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   useEffect(() => {
     fetchLists();
   }, [projectId]);
@@ -24,13 +61,13 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     try {
       setLoading(true);
       setError(null);
-      
+
       // Log the projectId for debugging
       console.log('Fetching lists for project:', projectId, 'Type:', typeof projectId);
-      
+
       // Fetch lists from API
       const listsData = await listsAPI.getProjectLists(projectId);
-      
+
       // Fetch cards for each list
       const listsWithCards = await Promise.all(
         listsData.map(async (list: List) => {
@@ -43,11 +80,11 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
           }
         })
       );
-      
+
       // Sort lists by position
       const sortedLists = listsWithCards.sort((a, b) => a.position - b.position);
       setLists(sortedLists);
-      
+
       console.log('Fetched lists:', sortedLists.length);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load lists';
@@ -67,19 +104,19 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
         title,
         currentListsCount: lists.length
       });
-      
+
       const newList = await listsAPI.createList(projectId, {
         title: title.trim(),
         position: lists.length,
         description: "",
         color: "#CCCCCC"
       });
-      
+
       console.log('Successfully created list:', newList);
-      
+
       // Add the new list with empty cards array
       setLists(prev => [...prev, { ...newList, cards: [] }]);
-      
+
       return newList;
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to create list';
@@ -88,7 +125,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
         message: err.message,
         stack: err.stack
       });
-      
+
       // Specific error handling
       if (errorMessage.includes('401') || errorMessage.includes('Session expired')) {
         setError('Session expired. Please login again.');
@@ -97,7 +134,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
       } else {
         setError(errorMessage);
       }
-      
+
       throw err;
     }
   };
@@ -106,9 +143,9 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     try {
       setError(null);
       const updatedList = await listsAPI.updateList(projectId, listId, data);
-      
-      setLists(lists.map(list => 
-        list.id === listId 
+
+      setLists(lists.map(list =>
+        list.id === listId
           ? { ...list, ...updatedList, cards: list.cards || [] }
           : list
       ));
@@ -121,8 +158,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
   };
 
   const handleDeleteList = async (listId: string) => {
-    if (!confirm('Are you sure you want to delete this list? All cards in this list will also be deleted.')) return;
-    
+    // Delete validation is now handled by AlertDialog in ListHeader
     try {
       setError(null);
       await listsAPI.deleteList(projectId, listId);
@@ -141,7 +177,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
         title: title.trim(),
         position: (lists.find(l => l.id === listId)?.cards?.length || 0),
       });
-      
+
       setLists(lists.map(list => {
         if (list.id === listId) {
           return {
@@ -163,7 +199,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     try {
       setError(null);
       const updatedCard = await cardsAPI.updateCard(listId, cardId, data);
-      
+
       setLists(lists.map(list => {
         if (list.id === listId) {
           return {
@@ -187,7 +223,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     try {
       setError(null);
       await cardsAPI.deleteCard(listId, cardId);
-      
+
       setLists(lists.map(list => {
         if (list.id === listId) {
           return {
@@ -209,6 +245,140 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     setError(null);
     fetchLists();
   };
+
+  // --- DND HANDLERS ---
+
+  function onDragStart(event: DragStartEvent) {
+    if (event.active.data.current?.type === "Column") {
+      setActiveColumn(event.active.data.current.list);
+      return;
+    }
+
+    if (event.active.data.current?.type === "Card") {
+      setActiveCard(event.active.data.current.card);
+      return;
+    }
+  }
+
+  function onDragOver(event: DragOverEvent) {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const isActiveACard = active.data.current?.type === "Card";
+    const isOverACard = over.data.current?.type === "Card";
+    const isOverAColumn = over.data.current?.type === "Column";
+
+    if (!isActiveACard) return;
+
+    // Dropping a Card over another Card
+    if (isActiveACard && isOverACard) {
+      const activeListIndex = lists.findIndex(list => list.cards?.some(c => c.id === activeId));
+      const overListIndex = lists.findIndex(list => list.cards?.some(c => c.id === overId));
+
+      if (activeListIndex !== -1 && overListIndex !== -1) {
+        setLists(lists => {
+          const activeList = lists[activeListIndex];
+          const overList = lists[overListIndex];
+
+          if (!activeList || !overList) return lists;
+
+          const activeCardIndex = activeList.cards!.findIndex(c => c.id === activeId);
+          const overCardIndex = overList.cards!.findIndex(c => c.id === overId);
+
+          let newLists = [...lists];
+
+          if (activeListIndex === overListIndex) {
+            // Reordering within the same list
+            const newCards = arrayMove(activeList.cards!, activeCardIndex, overCardIndex);
+            newLists[activeListIndex] = { ...activeList, cards: newCards };
+          } else {
+            // Moving to another list
+            const newActiveCards = [...activeList.cards!];
+            const [movedCard] = newActiveCards.splice(activeCardIndex, 1);
+            const newOverCards = [...overList.cards!];
+
+            // Insert at the position of the hovered card
+            // If dragging down, insert after. If dragging up, insert before.
+            // Using logic relative to arrays
+            let insertionIndex;
+            if (active.rect.current.translated && over.rect.top > active.rect.current.translated.top) {
+              insertionIndex = overCardIndex + 1;
+            } else {
+              insertionIndex = overCardIndex;
+            }
+
+            // Simple approach: Insert precisely at overCardIndex
+            newOverCards.splice(overCardIndex, 0, movedCard);
+
+            newLists[activeListIndex] = { ...activeList, cards: newActiveCards };
+            newLists[overListIndex] = { ...overList, cards: newOverCards };
+          }
+
+          return newLists;
+        });
+      }
+    }
+
+    // Dropping a Card over a Column (Empty list case)
+    if (isActiveACard && isOverAColumn) {
+      const activeListIndex = lists.findIndex(list => list.cards?.some(c => c.id === activeId));
+      const overListIndex = lists.findIndex(list => list.id === overId);
+
+      if (activeListIndex !== -1 && overListIndex !== -1 && activeListIndex !== overListIndex) {
+        setLists(lists => {
+          const activeList = lists[activeListIndex];
+          const overList = lists[overListIndex];
+
+          if (!activeList || !overList) return lists;
+
+          const activeCardIndex = activeList.cards!.findIndex(c => c.id === activeId);
+          const newActiveCards = [...activeList.cards!];
+          const [movedCard] = newActiveCards.splice(activeCardIndex, 1);
+
+          const newOverCards = [...(overList.cards || []), movedCard];
+
+          let newLists = [...lists];
+          newLists[activeListIndex] = { ...activeList, cards: newActiveCards };
+          newLists[overListIndex] = { ...overList, cards: newOverCards };
+
+          return newLists;
+        });
+      }
+    }
+  }
+
+  function onDragEnd(event: DragEndEvent) {
+    setActiveColumn(null);
+    setActiveCard(null);
+
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const isActiveAColumn = active.data.current?.type === "Column";
+    if (isActiveAColumn) {
+      const oldIndex = lists.findIndex(list => list.id === activeId);
+      const newIndex = lists.findIndex(list => list.id === overId);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newLists = arrayMove(lists, oldIndex, newIndex);
+        setLists(newLists);
+        // Here is where you would call the backend to update list positions
+        // updateListPositions(newLists)
+      }
+    }
+  }
+
+  const listsIds = useMemo(() => lists.map((list) => list.id), [lists]);
 
   if (loading) {
     return (
@@ -248,22 +418,54 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
           </div>
         </div>
       )}
-      
-      <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-300px)]">
-        {lists.map((list) => (
-          <ListComponent
-            key={list.id}
-            list={list}
-            onAddCard={(title) => handleAddCard(list.id, title)}
-            onUpdateCard={(cardId, data) => handleUpdateCard(list.id, cardId, data)}
-            onDeleteCard={(cardId) => handleDeleteCard(list.id, cardId)}
-            onUpdateList={(data) => handleUpdateList(list.id, data)}
-            onDeleteList={() => handleDeleteList(list.id)}
-          />
-        ))}
-        
-        <AddListButton onAddList={handleAddList} />
-      </div>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
+      >
+        <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-300px)] items-start">
+          <SortableContext items={listsIds} strategy={horizontalListSortingStrategy}>
+            {lists.map((list) => (
+              <ListComponent
+                key={list.id}
+                list={list}
+                onAddCard={(title) => handleAddCard(list.id, title)}
+                onUpdateCard={(cardId, data) => handleUpdateCard(list.id, cardId, data)}
+                onDeleteCard={(cardId) => handleDeleteCard(list.id, cardId)}
+                onUpdateList={(data) => handleUpdateList(list.id, data)}
+                onDeleteList={() => handleDeleteList(list.id)}
+              />
+            ))}
+          </SortableContext>
+          <AddListButton onAddList={handleAddList} />
+        </div>
+
+        {createPortal(
+          <DragOverlay>
+            {activeColumn && (
+              <ListComponent
+                list={activeColumn}
+                onAddCard={async () => { }}
+                onUpdateCard={async () => { }}
+                onDeleteCard={async () => { }}
+                onUpdateList={async () => { }}
+                onDeleteList={async () => { }}
+              />
+            )}
+            {activeCard && (
+              <CardComponent
+                card={activeCard}
+                onUpdate={async () => { }}
+                onDelete={async () => { }}
+              />
+            )}
+          </DragOverlay>,
+          document.body
+        )}
+      </DndContext>
     </div>
   );
 };

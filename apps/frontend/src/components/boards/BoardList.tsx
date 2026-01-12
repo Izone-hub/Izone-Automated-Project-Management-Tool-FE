@@ -5,16 +5,35 @@ import { AddList } from "./AddList";
 import { CardItem } from "./CardItem";
 import CardModal from "./CardModal";
 import { AddCard } from "./AddCard";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const BoardList = ({ boardId }: { boardId: string }) => {
   const board = useBoardStore((state) =>
     state.boards.find(b => b.id === boardId)
   );
+  const deleteList = useBoardStore((state) => state.deleteList);
 
   const [activeAddCardListId, setActiveAddCardListId] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<{ listId: string; card: any } | null>(null);
+  const [listToDelete, setListToDelete] = useState<string | null>(null);
+
+  const handleDeleteList = async () => {
+    if (listToDelete) {
+      await deleteList(boardId, listToDelete);
+      setListToDelete(null);
+    }
+  };
 
   if (!board) {
     return (
@@ -37,14 +56,23 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
           return (
             <div
               key={list.id}
-              className="min-w-72 bg-gray-50 rounded-lg shadow-sm flex flex-col h-fit border flex-shrink-0"
+              className="min-w-72 bg-gray-50 rounded-lg shadow-sm flex flex-col h-fit border flex-shrink-0 group/list"
             >
               {/* List Header */}
-              <div className="p-3 bg-gray-100 rounded-t-lg flex items-center justify-between">
+              <div className="p-3 bg-gray-100 rounded-t-lg flex items-center justify-between group-hover/list:bg-gray-200 transition-colors">
                 <h3 className="font-medium text-gray-800">{list.title || "Untitled List"}</h3>
-                <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
-                  {cards.length} cards
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
+                    {cards.length} cards
+                  </span>
+                  <button
+                    onClick={() => setListToDelete(list.id)}
+                    className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded opacity-0 group-hover/list:opacity-100 transition-all"
+                    title="Delete list"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Cards */}
@@ -93,6 +121,23 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
           onClose={() => setActiveCard(null)}
         />
       )}
+
+      <AlertDialog open={!!listToDelete} onOpenChange={(open) => !open && setListToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this list and all cards contained within it.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteList} className="bg-red-600 hover:bg-red-700">
+              Delete List
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
