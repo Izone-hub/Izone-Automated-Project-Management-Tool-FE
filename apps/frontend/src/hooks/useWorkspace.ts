@@ -2,12 +2,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { workspaceAPI, Workspace as ApiWorkspace } from "@/lib/api/workspaces";
 import { useAppStore, Workspace as StoreWorkspace } from "@/store/app.store";
+import { boardsAPI } from "@/lib/api/boards";
 
 interface UseWorkspacesReturn {
   workspaces: StoreWorkspace[];
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  boardCounts: Record<string, number>;
   createWorkspace: (payload: { name: string; description?: string }) => Promise<StoreWorkspace>;
   reload: () => Promise<void>;
   getWorkspaceById: (workspaceId: string) => StoreWorkspace | null;
@@ -34,6 +36,7 @@ export const useWorkspaces = (): UseWorkspacesReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [boardCounts, setBoardCounts] = useState<Record<string, number>>({});
 
   const checkAuth = useCallback(() => {
     if (typeof window === "undefined") return false;
@@ -41,19 +44,16 @@ export const useWorkspaces = (): UseWorkspacesReturn => {
     return !!token;
   }, []);
 
-  const load = useCallback(async () => {
-    // Return early if we already have workspaces and are just re-verifying auth ?? 
-    // No, we should probably fetch fresh data, but we can avoid flickering.
-
-    // Only set loading if we don't have data yet to avoid UI flashing
-    if (workspaces.length === 0) setLoading(true);
+  // Initial load - only runs once on mount
+  const initialLoad = useCallback(async () => {
+    setLoading(true);
     setError(null);
 
     const isAuth = checkAuth();
     setIsAuthenticated(isAuth);
 
     if (!isAuth) {
-      if (workspaces.length === 0) setLoading(false);
+      setLoading(false);
       return;
     }
 
@@ -61,27 +61,79 @@ export const useWorkspaces = (): UseWorkspacesReturn => {
       const data = await workspaceAPI.getAll();
       const storeData = data.map(mapApiToStore);
       setWorkspaces(storeData);
+
+      // Fetch board counts for each workspace
+      const counts: Record<string, number> = {};
+      await Promise.all(
+        storeData.map(async (ws) => {
+          try {
+            const boards = await boardsAPI.getWorkspaceBoards(ws.id);
+            counts[ws.id] = boards.length;
+          } catch {
+            counts[ws.id] = 0;
+          }
+        })
+      );
+      setBoardCounts(counts);
     } catch (err: any) {
       console.error("Failed to load workspaces", err);
-      // Only set error if we really failed and have no stale data to show?
-      // Or just log it.
-      // setError(err.message || "Failed to load workspaces");
-
       if (err.message.includes("Session expired") || err.message.includes("Unauthorized")) {
         setIsAuthenticated(false);
       }
     } finally {
       setLoading(false);
     }
-  }, [checkAuth, setWorkspaces, workspaces.length]);
+  }, [checkAuth, setWorkspaces]);
 
-  // Initial load
+  // Reload function - can be called on demand (e.g., refresh button)
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    const isAuth = checkAuth();
+    setIsAuthenticated(isAuth);
+
+    if (!isAuth) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const data = await workspaceAPI.getAll();
+      const storeData = data.map(mapApiToStore);
+      setWorkspaces(storeData);
+
+      // Fetch board counts for each workspace
+      const counts: Record<string, number> = {};
+      await Promise.all(
+        storeData.map(async (ws) => {
+          try {
+            const boards = await boardsAPI.getWorkspaceBoards(ws.id);
+            counts[ws.id] = boards.length;
+          } catch {
+            counts[ws.id] = 0;
+          }
+        })
+      );
+      setBoardCounts(counts);
+    } catch (err: any) {
+      console.error("Failed to load workspaces", err);
+      setError(err.message || "Failed to refresh workspaces");
+      if (err.message.includes("Session expired") || err.message.includes("Unauthorized")) {
+        setIsAuthenticated(false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [checkAuth, setWorkspaces]);
+
+  // Initial load on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // If store is empty, load. If not, maybe load in background?
-      load();
+      initialLoad();
     }
-  }, [load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const createWorkspace = async (payload: { name: string; description?: string }) => {
     if (!checkAuth()) {
@@ -121,10 +173,10 @@ export const useWorkspaces = (): UseWorkspacesReturn => {
     loading,
     error,
     isAuthenticated,
+    boardCounts,
     createWorkspace,
-    reload: load,
+    reload,
     getWorkspaceById,
-    // Removed loadWorkspaceById as it was just duplicate logic with local state
   };
 };
 
