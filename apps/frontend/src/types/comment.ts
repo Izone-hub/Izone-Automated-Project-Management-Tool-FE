@@ -3,6 +3,8 @@ export interface Comment {
   card_id: string;
   content: string;
   author_id: string | null;
+  author_name: string | null;
+  author_email: string | null;
   created_at: string;
 }
 

@@ -1,10 +1,13 @@
-export type Role = 'admin' | 'member';
 
+export type RoleEnum = 'owner' | 'member' | 'admin';
 
 export interface WorkspaceMember {
-id: string;
-user_id: string;
-workspace_id: string;
-role: Role;
-user?: import('./user').User;
+    user_id: string;
+    role: RoleEnum;
+    created_at: string;
+}
+
+export interface AddMemberPayload {
+    user_id: string;
+    role: RoleEnum;
 }

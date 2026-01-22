@@ -3,6 +3,18 @@
 
 import { MoreVertical, X } from 'lucide-react';
 import { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 interface ListHeaderProps {
   title: string;
@@ -29,7 +41,7 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
           </span>
         </div>
       </div>
-      
+
       <div className="relative">
         <button
           onClick={() => setShowMenu(!showMenu)}
@@ -37,7 +49,7 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
         >
           <MoreVertical className="w-4 h-4 text-gray-500" />
         </button>
-        
+
         {showMenu && (
           <>
             <div
@@ -54,15 +66,37 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
               >
                 Rename list
               </button>
-              <button
-                onClick={() => {
-                  onDeleteList();
-                  setShowMenu(false);
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-              >
-                Delete list
-              </button>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                  >
+                    Delete list
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete your
+                      account and remove your data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setShowMenu(false)}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        onDeleteList();
+                        setShowMenu(false);
+                      }}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </>
         )}

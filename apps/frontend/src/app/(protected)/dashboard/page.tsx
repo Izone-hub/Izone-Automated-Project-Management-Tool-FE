@@ -9,7 +9,7 @@ import { Plus, RefreshCw } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { workspaces, loading, error, isAuthenticated, reload } = useWorkspaces();
+  const { workspaces, loading, error, isAuthenticated, reload, boardCounts } = useWorkspaces();
   const [showForm, setShowForm] = useState(false);
 
   // Remove the entire useEffect with manual authentication check
@@ -131,8 +131,8 @@ export default function DashboardPage() {
                 key={workspace.id} 
                 workspace={{
                   ...workspace,
-                  memberCount: 0,
-                  boardCount: 0,
+                  memberCount: 1, // At minimum, the owner is a member
+                  boardCount: boardCounts[workspace.id] || 0,
                   visibility: 'private',
                   color: '#0079bf'
                 }}

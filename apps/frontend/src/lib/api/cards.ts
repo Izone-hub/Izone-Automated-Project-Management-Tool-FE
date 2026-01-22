@@ -43,9 +43,15 @@ export interface UpdateCardData {
   position?: number;
 }
 
+const ensureStringId = (id: any): string => {
+  if (!id) return '';
+  return typeof id === 'object' ? id.id : String(id);
+};
+
 export const cardsAPI = {
   // Get all cards for a list
   async getListCards(listId: string): Promise<Card[]> {
+    console.log('Fetching cards for list:', listId);
     try {
       const res = await fetch(
         `${API_BASE_URL}/lists/${listId}/cards/`,
@@ -61,7 +67,13 @@ export const cardsAPI = {
         throw new Error(`Failed to load cards: ${res.statusText}`);
       }
 
-      return res.json();
+      const cards = await res.json();
+      return cards.map((c: any) => ({
+        ...c,
+        id: ensureStringId(c.id),
+        list_id: ensureStringId(c.list_id),
+        created_by: ensureStringId(c.created_by)
+      }));
     } catch (error) {
       console.error("Error fetching cards:", error);
       throw error;
@@ -90,7 +102,13 @@ export const cardsAPI = {
         throw new Error(text || `Failed to create card: ${res.statusText}`);
       }
 
-      return res.json();
+      const c = await res.json();
+      return {
+        ...c,
+        id: ensureStringId(c.id),
+        list_id: ensureStringId(c.list_id),
+        created_by: ensureStringId(c.created_by)
+      };
     } catch (error) {
       console.error("Error creating card:", error);
       throw error;
@@ -100,12 +118,19 @@ export const cardsAPI = {
   // Update a card
   async updateCard(listId: string, cardId: string, data: UpdateCardData): Promise<Card> {
     try {
+      console.log('Updating card:', cardId, 'in list:', listId, 'with data:', data);
+
+      const updateData = { ...data };
+      if (updateData.due_date === "") {
+        delete updateData.due_date;
+      }
+
       const res = await fetch(
         `${API_BASE_URL}/lists/${listId}/cards/${cardId}`,
         {
           method: "PUT",
           headers: headers(),
-          body: JSON.stringify(data),
+          body: JSON.stringify(updateData),
         }
       );
 
@@ -116,10 +141,26 @@ export const cardsAPI = {
 
       if (!res.ok) {
         const text = await res.text();
+        console.error('Update card error response:', text);
+        try {
+          const errorDetail = JSON.parse(text);
+          if (errorDetail.detail && Array.isArray(errorDetail.detail)) {
+            const messages = errorDetail.detail.map((d: any) => d.msg).join(', ');
+            throw new Error(messages);
+          }
+        } catch (e) {
+          // not json or other parse error
+        }
         throw new Error(text || `Failed to update card: ${res.statusText}`);
       }
 
-      return res.json();
+      const c = await res.json();
+      return {
+        ...c,
+        id: ensureStringId(c.id),
+        list_id: ensureStringId(c.list_id),
+        created_by: ensureStringId(c.created_by)
+      };
     } catch (error) {
       console.error("Error updating card:", error);
       throw error;

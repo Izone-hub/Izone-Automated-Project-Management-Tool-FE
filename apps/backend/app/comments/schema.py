@@ -7,7 +7,7 @@ import uuid
 # Base schema with common fields
 class CommentBase(BaseModel):
     content: str
-    task_id: UUID4
+    card_id: UUID4
 
 # Schema for creating a comment
 class CommentCreate(CommentBase):
@@ -27,7 +27,7 @@ class CommentResponse(CommentBase):
 
 # Optional: Include related task/user if you want to return them
 class CommentWithRelations(CommentResponse):
-    task: "TaskResponse"  # Forward reference or import if in same project
+    card: "CardResponse"  # Forward reference or import if in same project
     author: "UserResponse"
 
     model_config = ConfigDict(from_attributes=True)

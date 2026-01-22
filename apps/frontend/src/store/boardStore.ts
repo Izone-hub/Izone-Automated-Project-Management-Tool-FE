@@ -40,7 +40,7 @@ interface BoardStore {
   fetchBoard: (boardId: string) => Promise<void>;
   fetchBoardCards: (boardId: string) => Promise<void>;
 
-  addBoard: (boardData: CreateBoardData & { workspaceId?: string; background?: string; color?: string; privacy?: string }) => string;
+  addBoard: (boardData: CreateBoardData & { workspaceId?: string; background?: string; color?: string; privacy?: string }) => Promise<string>;
   addList: (boardId: string, title: string) => Promise<void>;
   updateList: (boardId: string, listId: string, updates: Partial<List>) => Promise<void>;
   deleteList: (boardId: string, listId: string) => Promise<void>;
@@ -50,6 +50,7 @@ interface BoardStore {
 
   getWorkspaceBoards: (workspaceId: string) => BoardWithLists[];
   getWorkspaceBoardCount: (workspaceId: string) => number;
+  updateBoard: (boardId: string, updates: Partial<Board>) => Promise<void>;
 }
 
 // Helper mappers
@@ -89,6 +90,12 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
         lists: [], // Start with empty lists
       }));
       set({ boards: boardsWithLists, isLoading: false });
+
+      // Fetch details (lists & cards) for each board in the background
+      // This populates the card/list counts on the dashboard
+      backendBoards.forEach(board => {
+        get().fetchBoardCards(board.id);
+      });
     } catch (error: any) {
       set({
         error: error?.message || "Failed to fetch boards",
@@ -161,49 +168,41 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
     }
   },
 
-  addBoard: (boardData: CreateBoardData & { workspaceId?: string; background?: string; color?: string; privacy?: string }) => {
-    const tempId = Date.now().toString();
-    const newBoard: BoardWithLists = {
-      id: tempId,
-      name: boardData.name,
-      title: boardData.name,
-      description: boardData.description,
-      background_color: boardData.background || boardData.color || "#0079bf",
-      background: boardData.background || boardData.color || "#0079bf",
-      color: boardData.background || boardData.color || "#0079bf",
-      workspace_id: boardData.workspaceId || boardData.workspace_id || "default",
-      privacy: (boardData as any).privacy || "workspace",
-      archived: false,
-      created_by: "current_user",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      lists: [], // Start with empty lists
-    };
-
-    boardsAPI
-      .createBoard({
+  addBoard: async (boardData: CreateBoardData & { workspaceId?: string; background?: string; color?: string; privacy?: string }) => {
+    try {
+      // Create board on backend first and wait for the real ID
+      const realBoard = await boardsAPI.createBoard({
         name: boardData.name,
         description: boardData.description,
         background_color: boardData.background || boardData.color || "#0079bf",
         workspace_id: boardData.workspaceId || boardData.workspace_id || "default",
-      })
-      .then((realBoard) => {
-        console.log("✅ Board created on backend. Swapping ID:", tempId, "->", realBoard.id);
-        set((state: BoardStore) => ({
-          boards: state.boards.map((b: BoardWithLists) => {
-            if (b.id === tempId) {
-              return { ...b, ...realBoard, id: realBoard.id };
-            }
-            return b;
-          })
-        }));
-      })
-      .catch((error) => {
-        console.error("❌ Backend create failed:", error);
       });
 
-    set((state: BoardStore) => ({ boards: [newBoard, ...state.boards] }));
-    return tempId;
+      console.log("✅ Board created on backend:", realBoard.id);
+
+      const newBoard: BoardWithLists = {
+        id: realBoard.id, // Use the REAL ID from backend
+        name: realBoard.name,
+        title: realBoard.name,
+        description: realBoard.description,
+        background_color: realBoard.background_color,
+        background: realBoard.background_color,
+        color: realBoard.background_color,
+        workspace_id: realBoard.workspace_id,
+        privacy: (boardData as any).privacy || "workspace",
+        archived: false,
+        created_by: realBoard.created_by,
+        created_at: realBoard.created_at,
+        updated_at: realBoard.updated_at,
+        lists: [],
+      };
+
+      set((state: BoardStore) => ({ boards: [newBoard, ...state.boards] }));
+      return realBoard.id; // Return the REAL ID
+    } catch (error) {
+      console.error("❌ Backend create failed:", error);
+      throw error; // Re-throw so the caller knows it failed
+    }
   },
 
   addList: async (boardId: string, title: string) => {
@@ -436,6 +435,26 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
   getWorkspaceBoards: (workspaceId: string) => get().boards.filter((board: BoardWithLists) => board.workspace_id === workspaceId),
 
   getWorkspaceBoardCount: (workspaceId: string) => get().boards.filter((board: BoardWithLists) => board.workspace_id === workspaceId).length,
+
+  updateBoard: async (boardId: string, updates: Partial<Board>) => {
+    // Optimistic Update
+    set((state: BoardStore) => ({
+      boards: state.boards.map((b: BoardWithLists) =>
+        b.id === boardId ? { ...b, ...updates } : b
+      )
+    }));
+
+    try {
+      // Map 'title' back to 'name' for backend if needed
+      const apiUpdates: any = { ...updates };
+      if (updates.title) apiUpdates.name = updates.title;
+
+      await boardsAPI.updateBoard(boardId, apiUpdates);
+    } catch (error) {
+      console.error("Failed to update board:", error);
+      // We could revert here, but for simplicity we'll just log
+    }
+  },
 });
 
 export const useBoardStore = create<BoardStore>(store);

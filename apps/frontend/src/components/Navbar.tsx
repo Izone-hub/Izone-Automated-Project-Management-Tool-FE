@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { DynamicBreadcrumb } from "@/components/DynamicBreadcrumb";
 
 interface NavbarProps {
   className?: string;
@@ -37,9 +38,14 @@ export const Navbar = ({ className }: NavbarProps) => {
 
   return (
     <nav className={`sticky top-0 z-40 p-1.5 flex items-center justify-between bg-gray-100 border-b shadow-sm ${className}`}>
-      <SidebarTrigger />
       <div className="flex items-center gap-4">
-        <Link href="/">Dashboard</Link>
+        <SidebarTrigger />
+        <DynamicBreadcrumb />
+      </div>
+
+      <div className="flex items-center gap-4">
+        {/* Removed static Dashboard link as it's now in breadcrumbs/sidebar */}
+        {/* <Link href="/">Dashboard</Link> */}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

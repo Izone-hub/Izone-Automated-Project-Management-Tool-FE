@@ -70,7 +70,7 @@ def update_project(db: Session, project_id: str, data: ProjectUpdate, user_id: s
     project = _project_exists(db, project_id)
 
     # Only creator can update
-    if project.created_by != user_id:
+    if str(project.created_by) != user_id:
         raise HTTPException(status_code=403, detail="Not allowed to update this project")
 
     update_data = data.dict(exclude_unset=True)

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  ChevronDown, 
-  ChevronRight, 
-  Plus, 
+import Link from "next/link";
+import {
+  ChevronDown,
+  ChevronRight,
+  Plus,
   Folder,
   Settings,
   Users
@@ -12,20 +13,22 @@ import {
 import WorkspaceForm from '@/components/workspace/WorkspaceForm';
 import { useWorkspaces } from '@/hooks/useWorkspace';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 
 export const WorkspaceGroup = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const { workspaces, loading, error, loadWorkspaces } = useWorkspaces();
+  const { workspaces, loading, error, reload } = useWorkspaces();
 
   const handleRefresh = () => {
-    loadWorkspaces();
+    reload();
+    setShowForm(false);
   };
 
   return (
@@ -39,7 +42,7 @@ export const WorkspaceGroup = () => {
           <span>Workspaces</span>
           <span className="text-xs text-gray-500 ml-auto">({workspaces.length})</span>
         </button>
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -50,7 +53,7 @@ export const WorkspaceGroup = () => {
             <DropdownMenuItem onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4 mr-2" /> Create Workspace
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleRefresh}>
+            <DropdownMenuItem onClick={() => reload()}>
               <ChevronDown className="h-4 w-4 mr-2" /> Refresh
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -59,8 +62,7 @@ export const WorkspaceGroup = () => {
 
       {showForm && (
         <div className="mb-4 p-3 bg-gray-50 rounded-md border">
-          <WorkspaceForm 
-            onClose={() => setShowForm(false)}
+          <WorkspaceForm
             onSuccess={handleRefresh}
           />
         </div>
@@ -76,25 +78,25 @@ export const WorkspaceGroup = () => {
             <div className="py-2 text-sm text-gray-500">No workspaces yet</div>
           ) : (
             workspaces.map((workspace) => (
-              <a
-                key={workspace.id}
-                href={`/workspace/${workspace.id}`}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-md group transition-colors"
-              >
-                <Folder className="h-4 w-4 text-gray-400" />
-                <span className="truncate">{workspace.name}</span>
-                {workspace.description && (
-                  <span className="text-xs text-gray-400 truncate ml-2">- {workspace.description}</span>
-                )}
-                <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-1 hover:bg-gray-200 rounded">
-                    <Users className="h-3 w-3" />
-                  </button>
-                  <button className="p-1 hover:bg-gray-200 rounded">
-                    <Settings className="h-3 w-3" />
-                  </button>
-                </div>
-              </a>
+              <SidebarMenuItem key={workspace.id}>
+                <SidebarMenuButton asChild className="group">
+                  <Link href={`/workspace/${workspace.id}`}>
+                    <Folder className="h-4 w-4 text-gray-400" />
+                    <span className="truncate">{workspace.name}</span>
+                    {workspace.description && (
+                      <span className="text-xs text-gray-400 truncate ml-2">- {workspace.description}</span>
+                    )}
+                    <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="p-1 hover:bg-gray-200 rounded">
+                        <Users className="h-3 w-3" />
+                      </div>
+                      <div className="p-1 hover:bg-gray-200 rounded">
+                        <Settings className="h-3 w-3" />
+                      </div>
+                    </div>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             ))
           )}
         </div>

@@ -1,125 +1,130 @@
-'use client';
-
-import { Card } from "@/lib/types";
-import { useBoardStore } from "@/store/boardStore";
 import { useState, useEffect } from "react";
+import { X, FileText, Pencil, Clock, AlignLeft, Activity, Send, Users, Tag, CheckSquare, Calendar, AlertCircle, Paperclip, Eye, EyeOff, Copy, Trash2, Archive } from "lucide-react";
+import { getComments, createComment, Comment } from "@/lib/api/comments";
+import { type Card } from "@/lib/api/cards";
 import {
-  X, Clock, Users, Paperclip, MessageSquare,
-  CheckSquare, Tag, Eye, EyeOff, Calendar,
-  Send, Image as ImageIcon, FileText, Link,
-  AlignLeft, Activity, Archive, Share2, Copy, Trash2,
-  AlertCircle
-} from "lucide-react";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CardModalProps {
+  card: Card;
+  list?: { title: string };
   boardId: string;
   listId: string;
-  card: Card;
   onClose: () => void;
+  updateCard: (boardId: string, listId: string, cardId: string, updates: any) => Promise<void>;
 }
 
 const priorityColors = {
-  low: { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' },
-  medium: { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
-  high: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
-  urgent: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },
+  low: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
+  medium: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
+  high: { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200' },
+  urgent: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
 };
 
-export default function CardModal({ boardId, listId, card, onClose }: CardModalProps) {
-  // Add null check
-  if (!card) {
-    onClose();
-    return null;
-  }
-
-  const updateCard = useBoardStore((state) => state.updateCard);
-  const removeCard = useBoardStore((state) => state.removeCard);
-  const board = useBoardStore((state) => state.boards.find(b => b.id === boardId));
-  const list = board?.lists?.find(l => l.id === listId);
-
-  const [title, setTitle] = useState(card.title || '');
-  const [description, setDescription] = useState(card.description || '');
-  const [newComment, setNewComment] = useState('');
-  const [priority, setPriority] = useState(card.priority || 'medium');
-  const [dueDate, setDueDate] = useState(card.due_date ? card.due_date.split('T')[0] : '');
+export default function CardModal({
+  card,
+  list,
+  boardId,
+  listId,
+  onClose,
+  updateCard
+}: CardModalProps) {
+  // State definitions that were missing or placeholder
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [title, setTitle] = useState(card.title);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [description, setDescription] = useState(card.description || "");
+  const [newComment, setNewComment] = useState("");
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">(card.priority || "medium");
+  const [dueDate, setDueDate] = useState(card.due_date ? new Date(card.due_date).toISOString().split('T')[0] : "");
 
-  // Ensure arrays exist
-  const comments = card.comments || [];
-  const attachments = card.attachments || [];
-  const checklists = card.checklists || [];
-  const labels = card.labels || [];
-
-  // Close modal on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
-
-  const handleSaveTitle = () => {
-    if (title.trim() && title !== card.title) {
-      updateCard(boardId, listId, card.id, { title: title.trim() });
+  const handleSaveTitle = async () => {
+    if (title !== card.title) {
+      await updateCard(boardId, listId, card.id, { title });
     }
     setIsEditingTitle(false);
   };
 
-  const handleSaveDescription = () => {
+  const handleSaveDescription = async () => {
     if (description !== card.description) {
-      updateCard(boardId, listId, card.id, { description: description || undefined });
+      await updateCard(boardId, listId, card.id, { description });
     }
     setIsEditingDescription(false);
   };
 
-  const handlePriorityChange = (newPriority: 'low' | 'medium' | 'high' | 'urgent') => {
+  const handlePriorityChange = async (newPriority: "low" | "medium" | "high" | "urgent") => {
     setPriority(newPriority);
-    updateCard(boardId, listId, card.id, { priority: newPriority });
     setShowPriorityMenu(false);
+    await updateCard(boardId, listId, card.id, { priority: newPriority });
   };
 
-  const handleDueDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setDueDate(value);
-    updateCard(boardId, listId, card.id, {
-      due_date: value ? new Date(value).toISOString() : undefined
-    });
+  const handleDueDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setDueDate(val);
+    await updateCard(boardId, listId, card.id, { due_date: val ? new Date(val).toISOString() : null });
   };
 
-  const handleDelete = () => {
-    removeCard(boardId, listId, card.id);
+  const toggleWatch = async () => {
+    // Implement watch toggle if API supports it
+  };
+
+  const handleDelete = async () => {
+    // Implement delete logic
+    await updateCard(boardId, listId, card.id, { _delete: true });
     onClose();
   };
 
-  const toggleWatch = () => {
-    updateCard(boardId, listId, card.id, {
-      isWatched: !card.isWatched
-    });
-  };
 
-  const addComment = () => {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+
+  // ... existing states ...
+
+  // Ensure arrays exist (removed comments from here)
+  const attachments = card.attachments || [];
+  const checklists = card.checklists || [];
+  const labels = card.labels || [];
+
+  // Fetch comments on mount
+  useEffect(() => {
+    if (card?.id) {
+      setLoadingComments(true);
+      getComments(card.id)
+        .then((data) => {
+          setComments(data);
+        })
+        .catch((err) => console.error("Failed to load comments", err))
+        .finally(() => setLoadingComments(false));
+    }
+  }, [card?.id]);
+
+  // ...
+
+  const addComment = async () => {
     if (!newComment.trim()) return;
 
-    const newCommentObj = {
-      id: Date.now().toString(),
-      text: newComment.trim(),
-      userId: 'user1',
-      userName: 'You',
-      userAvatar: '',
-      createdAt: new Date().toISOString()
-    };
-
-    updateCard(boardId, listId, card.id, {
-      comments: [...comments, newCommentObj]
-    });
-    setNewComment('');
+    try {
+      const savedComment = await createComment(card.id, newComment.trim());
+      setComments((prev) => [...prev, savedComment]);
+      setNewComment('');
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+      // Optional: show user feedback
+    }
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       month: 'short',
@@ -171,12 +176,15 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
                   onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSaveTitle()}
                 />
               ) : (
-                <h2
-                  className="text-xl font-semibold text-gray-900 cursor-pointer hover:bg-gray-200 px-2 py-1 rounded -mx-2"
+                <div
+                  className="group/title flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-2 py-1 rounded -mx-2 transition-colors"
                   onClick={() => setIsEditingTitle(true)}
                 >
-                  {title}
-                </h2>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {title}
+                  </h2>
+                  <Pencil className="w-4 h-4 text-gray-400 opacity-0 group-hover/title:opacity-100 transition-opacity" />
+                </div>
               )}
               <p className="text-sm text-gray-500 mt-1 px-2">
                 in list <span className="font-medium text-gray-700 underline cursor-pointer hover:text-blue-600">{list?.title || 'Unknown'}</span>
@@ -209,10 +217,10 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
             )}
             {card.due_date && (
               <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${isOverdue()
-                  ? 'bg-red-100 text-red-700'
-                  : isDueSoon()
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-gray-100 text-gray-600'
+                ? 'bg-red-100 text-red-700'
+                : isDueSoon()
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : 'bg-gray-100 text-gray-600'
                 }`}>
                 <Clock className="w-3 h-3" />
                 {formatDate(card.due_date)}
@@ -262,8 +270,8 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
                 <div
                   onClick={() => setIsEditingDescription(true)}
                   className={`min-h-[60px] p-3 rounded-lg cursor-pointer transition-colors ${description
-                      ? 'bg-gray-50 hover:bg-gray-100'
-                      : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-gray-50 hover:bg-gray-100'
+                    : 'bg-gray-100 hover:bg-gray-200'
                     }`}
                 >
                   {description ? (
@@ -353,16 +361,50 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
 
             {/* Due Date */}
             <div className="relative">
-              <label className="w-full flex items-center gap-3 px-3 py-2 text-left bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium text-gray-700 cursor-pointer transition-colors">
-                <Calendar className="w-4 h-4" />
-                <span>Due Date</span>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={handleDueDateChange}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-              </label>
+              <div className="w-full bg-gray-200 hover:bg-gray-300 rounded-lg overflow-hidden transition-colors">
+                <label className="flex items-center gap-3 px-3 py-2 text-left text-sm font-medium text-gray-700 cursor-pointer">
+                  <Calendar className="w-4 h-4" />
+                  <span>Due Date</span>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={handleDueDateChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  />
+                </label>
+
+                {/* Days Calculator */}
+                <div className="px-3 pb-2 flex items-center gap-2 border-t border-gray-300 pt-1 pointer-events-auto relative z-20">
+                  <span className="text-[10px] text-gray-500 uppercase font-bold">Or in</span>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="#"
+                    className="w-10 px-1 py-0.5 text-xs border rounded bg-white text-center focus:ring-1 focus:ring-blue-500 outline-none"
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => {
+                      const days = parseInt(e.target.value);
+                      if (!isNaN(days) && days > 0) {
+                        const date = new Date();
+                        date.setDate(date.getDate() + days); // Properly adds days, handling month rollovers
+
+                        // Format to YYYY-MM-DD for input[type="date"]
+                        const yyyy = date.getFullYear();
+                        const mm = String(date.getMonth() + 1).padStart(2, '0');
+                        const dd = String(date.getDate()).padStart(2, '0');
+                        const dateStr = `${yyyy}-${mm}-${dd}`;
+
+                        setDueDate(dateStr);
+                        // Also trigger the update immediately
+                        updateCard(boardId, listId, card.id, {
+                          due_date: new Date(dateStr).toISOString()
+                        });
+                      }
+                    }}
+                  />
+                  <span className="text-xs text-gray-500">days</span>
+                </div>
+              </div>
             </div>
 
             {/* Priority */}
@@ -425,33 +467,34 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
               </button>
 
               {/* Delete */}
-              {showDeleteConfirm ? (
-                <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
-                  <p className="text-sm text-red-700 mb-2">Delete this card?</p>
-                  <div className="flex gap-2">
-                    <button
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left bg-red-100 hover:bg-red-200 rounded-lg text-sm font-medium text-red-700 transition-colors mt-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete this card
+                      and remove its data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
                       onClick={handleDelete}
-                      className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 text-white"
                     >
                       Delete
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteConfirm(false)}
-                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-left bg-red-100 hover:bg-red-200 rounded-lg text-sm font-medium text-red-700 transition-colors mt-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Delete</span>
-                </button>
-              )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </div>

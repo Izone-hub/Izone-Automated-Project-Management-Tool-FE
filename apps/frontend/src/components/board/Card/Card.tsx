@@ -4,6 +4,17 @@
 import { useState } from 'react';
 import { Card as CardType } from '@/types/card';
 import { Calendar, AlertCircle, Clock, Edit2, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CardComponentProps {
   card: CardType;
@@ -37,12 +48,10 @@ export const CardComponent: React.FC<CardComponentProps> = ({
   };
 
   const handleDelete = async () => {
-    if (confirm('Delete this card?')) {
-      try {
-        await onDelete();
-      } catch (error) {
-        console.error('Failed to delete card:', error);
-      }
+    try {
+      await onDelete();
+    } catch (error) {
+      console.error('Failed to delete card:', error);
     }
   };
 
@@ -125,15 +134,37 @@ export const CardComponent: React.FC<CardComponentProps> = ({
                 >
                   <Edit2 className="w-3 h-3 text-gray-500" />
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete();
-                  }}
-                  className="p-1 hover:bg-red-50 rounded"
-                >
-                  <Trash2 className="w-3 h-3 text-red-500" />
-                </button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-1 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 className="w-3 h-3 text-red-500" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this card?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the card.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete();
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             )}
           </div>

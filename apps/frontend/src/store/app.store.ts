@@ -25,20 +25,21 @@ interface AppStore {
   // Workspaces
   workspaces: Workspace[];
   boards: Board[];
-  
+
   // Actions
   createWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateWorkspace: (id: string, updates: Partial<Workspace>) => void;
   deleteWorkspace: (id: string) => void;
   getWorkspace: (id: string) => Workspace | undefined;
-  
+
   // Boards
   createBoard: (board: Omit<Board, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateBoard: (id: string, updates: Partial<Board>) => void;
   deleteBoard: (id: string) => void;
   getBoardsByWorkspace: (workspaceId: string) => Board[];
   getBoard: (id: string) => Board | undefined;
-  
+
+  setWorkspaces: (workspaces: Workspace[]) => void;
   // User
   currentUser: { id: string; name: string; email: string } | null;
   setCurrentUser: (user: { id: string; name: string; email: string }) => void;
@@ -55,6 +56,8 @@ export const useAppStore = create<AppStore>()(
       setCurrentUser: (user) => set({ currentUser: user }),
 
       // Workspace actions
+      setWorkspaces: (workspaces) => set({ workspaces }),
+
       createWorkspace: (workspaceData) => {
         const newWorkspace: Workspace = {
           ...workspaceData,

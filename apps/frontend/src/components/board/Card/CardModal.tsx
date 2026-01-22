@@ -147,17 +147,7 @@ export const CardModal: React.FC<CardModalProps> = ({
           <div className="space-y-4">
             <h3 className="font-semibold text-gray-700">Add to card</h3>
 
-            {/* Members */}
-            <button className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-100 rounded-lg">
-              <Users className="w-5 h-5 text-gray-500" />
-              <span>Members</span>
-            </button>
 
-            {/* Labels */}
-            <button className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-100 rounded-lg">
-              <Tag className="w-5 h-5 text-gray-500" />
-              <span>Labels</span>
-            </button>
 
             {/* Due Date */}
             <div className="p-3 border rounded-lg">

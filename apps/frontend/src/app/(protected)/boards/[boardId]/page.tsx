@@ -50,10 +50,7 @@ export default function BoardPage({ params }: { params: Promise<{ boardId: strin
         backgroundPosition: 'center'
       }}
     >
-      {/* Board Header - Simplified relative to what was there, or I can check BoardHeader component */}
-      <div className="bg-black bg-opacity-20 p-4 text-white backdrop-blur-sm">
-        <h1 className="text-xl font-bold">{board?.title}</h1>
-      </div>
+      <BoardHeader board={board as any} />
 
       {/* Board Content - The Lists */}
       <div className="flex-1 overflow-x-auto">

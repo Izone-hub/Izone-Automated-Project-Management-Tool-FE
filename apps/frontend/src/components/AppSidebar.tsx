@@ -1,25 +1,25 @@
 import { Calendar, Home, Search, Settings, LayoutTemplate } from "lucide-react";
-import { 
+import {
   Sidebar,
   SidebarHeader,
   SidebarSeparator,
-  SidebarContent, 
+  SidebarContent,
   SidebarGroup,
-  SidebarGroupContent, 
-  SidebarGroupLabel, 
-  SidebarMenu, 
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import Image from "next/image";      
+import Image from "next/image";
 import { WorkspaceGroup } from "./sidebar/WorkspaceGroup";
 
 // Updated navigation items to match Trello's structure
 const items = [
   {
     title: "Home",
-    url: "/",
+    url: "/dashboard",
     icon: Home,
   },
   {
@@ -27,16 +27,16 @@ const items = [
     url: "/boards",
     icon: LayoutTemplate,
   },
-  {
-    title: "Templates",
-    url: "/templates",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "/search",
-    icon: Search,
-  },
+  // {
+  //   title: "Templates",
+  //   url: "/templates",
+  //   icon: Calendar,
+  // },
+  // {
+  //   title: "Search",
+  //   url: "/search",
+  //   icon: Search,
+  // },
   {
     title: "Settings",
     url: "/settings",
@@ -53,13 +53,13 @@ export const AppSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="flex items-center gap-2">
               <Link href="/">
-                <Image 
-                  src="/Group%2010.png" 
-                  alt="logo" 
+                <Image
+                  src="/Group%2010.png"
+                  alt="logo"
                   width={26}
                   height={26}
                 />
-                <span className="font-semibold">Trello</span>
+                <span className="font-semibold">Project Management</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

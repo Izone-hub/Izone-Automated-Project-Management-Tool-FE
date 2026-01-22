@@ -1,13 +1,16 @@
 // components/board/List/List.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { List } from '@/types';
 import { Card } from '@/types/card';
 import { ListHeader } from './ListHeader';
 import { AddCardForm } from './AddCardForm';
-import { CardComponent } from '../Card/Card';
+import { SortableCard } from '../Card/SortableCard'; // Use SortableCard instead
 import { CardModal } from '../Card/CardModal';
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
 interface ListComponentProps {
   list: List & { cards?: Card[] };
@@ -30,6 +33,28 @@ export const ListComponent: React.FC<ListComponentProps> = ({
   const [editingTitle, setEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(list.title);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
+
+  // dnd-kit sortable hook for the COLUMN/LIST itself
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: list.id,
+    data: {
+      type: "Column",
+      list,
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   const handleTitleUpdate = async () => {
     if (tempTitle.trim() && tempTitle !== list.title) {
@@ -64,13 +89,25 @@ export const ListComponent: React.FC<ListComponentProps> = ({
     await onUpdateCard(cardId, data);
   };
 
-  const sortedCards = [...(list.cards || [])].sort((a, b) => a.position - b.position);
+  const sortedCards = useMemo(() => {
+    return [...(list.cards || [])].sort((a, b) => a.position - b.position);
+  }, [list.cards]);
+
+  const cardsIds = useMemo(() => sortedCards.map((c) => c.id), [sortedCards]);
 
   return (
     <>
-      <div className="w-72 bg-gray-50 rounded-lg shadow-sm flex flex-col h-fit border border-gray-200 flex-shrink-0">
-        {/* List Header */}
-        <div className="p-3 bg-gray-100 rounded-t-lg">
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="w-72 bg-gray-50 rounded-lg shadow-sm flex flex-col h-fit border border-gray-200 flex-shrink-0"
+      >
+        {/* List Header - This is the drag handle for the list */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="p-3 bg-gray-100 rounded-t-lg cursor-grab active:cursor-grabbing"
+        >
           {editingTitle ? (
             <div className="flex items-center gap-2">
               <input
@@ -81,6 +118,8 @@ export const ListComponent: React.FC<ListComponentProps> = ({
                 onKeyDown={(e) => e.key === 'Enter' && handleTitleUpdate()}
                 className="flex-1 px-2 py-1 border rounded text-sm font-medium"
                 autoFocus
+                onClick={(e) => e.stopPropagation()} // Prevent drag start when clicking input
+                onPointerDown={(e) => e.stopPropagation()}
               />
               <button
                 onClick={handleTitleUpdate}
@@ -101,21 +140,23 @@ export const ListComponent: React.FC<ListComponentProps> = ({
 
         {/* Cards Container */}
         <div className="p-2 flex-1 min-h-[100px] space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
-          {sortedCards.length === 0 ? (
-            <div className="text-center py-4 text-gray-400 text-sm">
-              No cards yet
-            </div>
-          ) : (
-            sortedCards.map((card) => (
-              <CardComponent
-                key={card.id}
-                card={card}
-                onUpdate={(data) => onUpdateCard(card.id, data)}
-                onDelete={() => onDeleteCard(card.id)}
-                onClick={() => setActiveCard(card)}
-              />
-            ))
-          )}
+          <SortableContext items={cardsIds} strategy={verticalListSortingStrategy}>
+            {sortedCards.length === 0 ? (
+              <div className="text-center py-4 text-gray-400 text-sm">
+                No cards yet
+              </div>
+            ) : (
+              sortedCards.map((card) => (
+                <SortableCard
+                  key={card.id}
+                  card={card}
+                  onUpdate={(data) => onUpdateCard(card.id, data)}
+                  onDelete={() => onDeleteCard(card.id)}
+                  onClick={() => setActiveCard(card)}
+                />
+              ))
+            )}
+          </SortableContext>
         </div>
 
         {/* Add Card Section */}

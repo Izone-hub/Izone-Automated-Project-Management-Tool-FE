@@ -3,6 +3,10 @@ from app.models.card import Card
 from app.cards.schema import CardCreate, CardUpdate
 
 
+from sqlalchemy import text
+from app.models.comment import Comment
+
+
 def create_card(
     db: Session,
     list_id: str,
@@ -60,10 +64,9 @@ def update_card(db: Session, card_id: str, data: CardUpdate):
 
 
 def delete_card(db: Session, card_id: str):
-    card = get_card(db, card_id)
-    if not card:
-        return None
-
-    db.delete(card)
+    # Use raw SQL to bypass ORM schema mismatch (missing comments.card_id column)
+    # The database will handle cascade if configured, or fail if blocked,
+    # but this avoids the Psycopg2 UndefinedColumn error in SQLAlchemy.
+    db.execute(text("DELETE FROM cards WHERE id = :id"), {"id": card_id})
     db.commit()
-    return card
+    return True

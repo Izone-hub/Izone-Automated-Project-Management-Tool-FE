@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginCredentials, SignupData, AuthResponse } from '@/lib/api/auth';
 import { toast } from 'sonner';
-import { authApi } from '@/lib/api/auth';
-import { setCookie, removeCookie } from '@/lib/utils';
+import { authApi } from '@/lib/api/auth-api';
+import { removeCookie } from '@/lib/utils';
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,25 +13,25 @@ export function useAuth() {
   const clearSession = () => {
     if (typeof window === 'undefined') return;
 
-    
+
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
     localStorage.removeItem('lastWorkspaceId');
 
-  
+
     removeCookie('auth_token');
-    
+
     document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
     document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:01 GMT";
 
-    
+
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('auth_') || key.includes('token')) {
         localStorage.removeItem(key);
       }
     });
 
-  
+
     document.cookie.split(";").forEach(cookie => {
       const [name] = cookie.trim().split("=");
       if (name) {
@@ -44,17 +44,25 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
 
-    
+
     clearSession();
 
     try {
       const response: AuthResponse = await authApi.login(credentials);
 
-      
+
       if (response.access_token) {
+        // Set in localStorage for client-side access
         localStorage.setItem('auth_token', response.access_token);
-    
-        setCookie('auth_token', response.access_token);
+
+        // Set httpOnly cookie via API route for server-side access
+        await fetch('/api/auth/set-cookie', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token: response.access_token }),
+        });
 
         if (response.user) {
           localStorage.setItem('user', JSON.stringify(response.user));
@@ -79,17 +87,25 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
 
-    
+
     clearSession();
 
     try {
       const response: AuthResponse = await authApi.signup(data);
 
-      
+
       if (response.access_token) {
+        // Set in localStorage for client-side access
         localStorage.setItem('auth_token', response.access_token);
-        
-        setCookie('auth_token', response.access_token);
+
+        // Set httpOnly cookie via API route for server-side access
+        await fetch('/api/auth/set-cookie', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token: response.access_token }),
+        });
 
         if (response.user) {
           localStorage.setItem('user', JSON.stringify(response.user));

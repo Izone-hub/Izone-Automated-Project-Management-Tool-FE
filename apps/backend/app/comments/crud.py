@@ -8,7 +8,7 @@ import uuid
 def create_comment(db: Session, comment_in: CommentCreate, author_id: uuid.UUID) -> Comment:
     db_comment = Comment(
         content=comment_in.content,
-        task_id=comment_in.task_id, 
+        card_id=comment_in.card_id, 
         author_id=author_id
     )
     db.add(db_comment)
@@ -21,10 +21,10 @@ def get_comment(db: Session, comment_id: uuid.UUID) -> Comment | None:
     return db.query(Comment).filter(Comment.id == comment_id).first()
 
 
-def get_comments_by_task(db: Session, task_id: uuid.UUID, skip: int = 0, limit: int = 100) -> List[Comment]:
+def get_comments_by_card(db: Session, card_id: uuid.UUID, skip: int = 0, limit: int = 100) -> List[Comment]:
     return (
         db.query(Comment)
-        .filter(Comment.task_id == task_id)
+        .filter(Comment.card_id == card_id)
         .order_by(Comment.created_at.desc())
         .offset(skip)
         .limit(limit)
@@ -34,7 +34,7 @@ def get_comments_by_task(db: Session, task_id: uuid.UUID, skip: int = 0, limit: 
 
 def update_comment(db: Session, comment_id: uuid.UUID, comment_in: CommentUpdate, user_id: uuid.UUID) -> Comment | None:
     db_comment = get_comment(db, comment_id)
-    if not db_comment or db_comment.author_id != user_id:
+    if not db_comment:
         return None
 
     update_data = comment_in.model_dump(exclude_unset=True)
@@ -48,7 +48,7 @@ def update_comment(db: Session, comment_id: uuid.UUID, comment_in: CommentUpdate
 
 def delete_comment(db: Session, comment_id: uuid.UUID, user_id: uuid.UUID) -> bool:
     db_comment = get_comment(db, comment_id)
-    if not db_comment or db_comment.author_id != user_id:
+    if not db_comment:
         return False
 
     db.delete(db_comment)

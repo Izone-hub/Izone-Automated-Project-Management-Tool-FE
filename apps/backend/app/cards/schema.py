@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 from app.models.card import Priority
 
 
@@ -25,11 +26,10 @@ class CardUpdate(BaseModel):
 
 
 class CardResponse(CardBase):
-    id: str
-    list_id: str
-    created_by: Optional[str]
+    id: UUID
+    list_id: UUID
+    created_by: Optional[UUID]
     created_at: datetime
     updated_at: Optional[datetime]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
