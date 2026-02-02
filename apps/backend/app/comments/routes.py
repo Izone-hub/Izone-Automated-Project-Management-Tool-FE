@@ -1,8 +1,8 @@
 # app/api/v1/routes/comment.py
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..db.session import get_db
-from ..auth.security import decode_access_token # Kept just in case, though likely unused too
+from ..auth.security import get_current_user
 from app.comments import crud as crud_comment
 from app.comments.schema import CommentCreate, CommentResponse, CommentUpdate
 from app.models.user import User
@@ -19,22 +19,16 @@ def create_comment(
     card_id: uuid.UUID,
     comment_in: CommentCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-   
     if comment_in.card_id != card_id:
         raise HTTPException(
             status_code=400,
             detail="Card ID in body must match the one in URL"
         )
 
-    # Fallback to the first user in the DB since auth is disabled
-    # This satisfies the NOT NULL constraint on author_id
-    fallback_user = db.query(User).first()
-    if not fallback_user:
-        # Should not happen in a working app, but handle gracefully
-        raise HTTPException(status_code=500, detail="No users found in database to attribute comment to.")
-        
-    comment = crud_comment.create_comment(db, comment_in, author_id=fallback_user.id) 
+    # Use the authenticated user's ID
+    comment = crud_comment.create_comment(db, comment_in, author_id=current_user.id) 
     return comment
 
 
@@ -45,6 +39,7 @@ def read_comments(
     limit: int = 100,
     db: Session = Depends(get_db),
 ):
+    """Read comments - public access (no auth required)"""
     comments = crud_comment.get_comments_by_card(db, card_id=card_id, skip=skip, limit=limit)
     return comments
 
@@ -55,8 +50,9 @@ def update_comment(
     comment_id: uuid.UUID,
     comment_in: CommentUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    comment = crud_comment.update_comment(db, comment_id, comment_in, user_id=None)
+    comment = crud_comment.update_comment(db, comment_id, comment_in, user_id=current_user.id)
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found or not authorized")
     return comment
@@ -67,8 +63,9 @@ def delete_comment(
     card_id: uuid.UUID,
     comment_id: uuid.UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    success = crud_comment.delete_comment(db, comment_id, user_id=None)
+    success = crud_comment.delete_comment(db, comment_id, user_id=current_user.id)
     if not success:
         raise HTTPException(status_code=404, detail="Comment not found or not authorized")
     return None
