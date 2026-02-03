@@ -454,30 +454,25 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
       const targetList = lists[targetListIndex];
       const newPosition = targetList.cards!.findIndex(c => c.id === activeIdStr);
 
-      // Check if card moved to a different list
-      const movedToDifferentList = originalListIndex !== -1 &&
-        originalListIndex !== targetListIndex &&
-        prevListsRef.current?.[originalListIndex]?.id !== targetList.id;
+      // Always prepare update data with position and list_id
+      // This ensures the backend always gets the current state
+      const updateData: any = {
+        position: newPosition,
+        list_id: targetList.id  // Always include list_id
+      };
 
-      // Prepare update data
-      const updateData: any = { position: newPosition };
+      console.log('🔍 About to persist card move');
+      console.log('🔍 updateData:', updateData);
+      console.log('🔍 targetList.id:', targetList.id);
 
-      // If card moved to a different list, include the new list_id
-      if (movedToDifferentList) {
-        updateData.list_id = targetList.id;
-      }
+      // Get the ORIGINAL list ID (where the card was before dragging)
+      const originalListId = prevListsRef.current?.[originalListIndex]?.id || targetList.id;
+      console.log('🔍 originalListId:', originalListId);
 
       // Persist change for the moved card
-      console.log('🔍 About to persist card move. movedToDifferentList:', movedToDifferentList);
-      console.log('🔍 updateData:', updateData);
-
       (async () => {
+        const toastId = toast.loading('Moving card...');
         try {
-          // Use the original list ID for the API call (the card is still in the old list on backend)
-          const originalListId = movedToDifferentList && prevListsRef.current?.[originalListIndex]?.id
-            ? prevListsRef.current[originalListIndex].id
-            : targetList.id;
-
           console.log('🔍 Calling handleUpdateCard with:', { originalListId, activeIdStr, updateData });
           await handleUpdateCard(originalListId, activeIdStr, updateData);
           console.log('✅ handleUpdateCard succeeded');
@@ -485,12 +480,12 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
           // Re-fetch to ensure server canonical ordering and reflect the move
           await fetchLists();
           console.log('✅ fetchLists succeeded');
-          toast.success('Card moved');
+          toast.success('Card moved successfully!', { id: toastId });
         } catch (err) {
           console.error('❌ Failed to persist card move', err);
           // Revert to previous state
           if (prevListsRef.current) setLists(prevListsRef.current);
-          toast.error('Failed to move card');
+          toast.error('Failed to move card: ' + (err instanceof Error ? err.message : 'Unknown error'), { id: toastId });
         } finally {
           setActiveCard(null);
           prevListsRef.current = null;
