@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Users, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { MembersList } from "@/components/workspace/MembersList";
 import { AddMemberDialog } from "@/components/workspace/AddMemberDialog";
 import { membersAPI, type MemberOut, type RoleEnum } from "@/lib/api/members";
@@ -45,31 +46,20 @@ export default function WorkspaceMembersPage() {
             const ws = await workspaceAPI.getById(workspaceId);
             setWorkspace(ws);
 
-            // Note: The backend 'list_workspaces' endpoint currently ONLY returns workspaces owned by the user.
-            // Therefore, if we can fetch the workspace, the current user is the owner/admin.
             if (ws) {
                 setIsAdmin(true);
-                // If strict ID matching fails (e.g. case sensitivity or missing local user), 
-                // we still trust the API's implicit ownership for now.
-                if (currentUserId && ws.owner_id !== currentUserId) {
-                    console.warn(`User ID mismatch: Local(${currentUserId}) vs WS-Owner(${ws.owner_id})`);
-                }
             }
 
-            // Show the owner in the members list
-            const ownerMember: MemberOut = {
-                user_id: ws?.owner_id || currentUserId || "unknown",
-                role: "owner", // It's their workspace
-                created_at: ws?.created_at || new Date().toISOString(),
-            };
-            setMembers([ownerMember]);
+            // Fetch actual members list from backend
+            const memberList = await membersAPI.listMembers(workspaceId);
+            setMembers(memberList);
 
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to load workspace");
         } finally {
             setLoading(false);
         }
-    }, [workspaceId, currentUserId]);
+    }, [workspaceId]);
 
     useEffect(() => {
         if (workspaceId) {
@@ -77,14 +67,44 @@ export default function WorkspaceMembersPage() {
         }
     }, [fetchData, workspaceId]);
 
-    const handleAddMember = async (userId: string, role: RoleEnum) => {
-        const newMember = await membersAPI.addMember(workspaceId, { user_id: userId, role });
-        setMembers((prev) => [...prev, newMember]);
+    const handleAddMember = async (email: string, role: RoleEnum) => {
+        const newMember = await membersAPI.addMember(workspaceId, { email, role });
+        setMembers((prev) => {
+            // Prevent adding duplicate if it already exists (e.g. backend returned success but same ID)
+            if (prev.find(m => m.user_id === newMember.user_id)) return prev;
+            return [...prev, newMember];
+        });
     };
 
     const handleRemoveMember = async (userId: string) => {
-        await membersAPI.removeMember(workspaceId, userId);
-        setMembers((prev) => prev.filter((m) => m.user_id !== userId));
+        try {
+            await membersAPI.removeMember(workspaceId, userId);
+            setMembers((prev) => prev.filter((m) => m.user_id !== userId));
+            toast.success("Member removed successfully");
+        } catch (err) {
+            console.error("Failed to remove member:", err);
+            toast.error(err instanceof Error ? err.message : "Failed to remove member");
+        }
+    };
+
+    const handleUpdateRole = async (userId: string, role: RoleEnum) => {
+        try {
+            // Find existing member to get email
+            const member = members.find(m => m.user_id === userId);
+            if (!member) return;
+
+            // Using addMember to update role as per backend CRUD logic
+            const updated = await membersAPI.addMember(workspaceId, {
+                email: member.email,
+                role: role
+            });
+
+            setMembers((prev) => prev.map(m => m.user_id === userId ? updated : m));
+            toast.success("Member role updated successfully");
+        } catch (err) {
+            console.error("Failed to update member role:", err);
+            toast.error(err instanceof Error ? err.message : "Failed to update role");
+        }
     };
 
     if (loading) {
@@ -159,12 +179,14 @@ export default function WorkspaceMembersPage() {
                     </div>
 
                     <MembersList
-                        members={members.map((m) => ({
+                        members={Array.from(new Map(members.map(m => [m.user_id, m])).values()).map((m) => ({
                             user_id: m.user_id,
+                            email: m.email,
                             role: m.role,
                             created_at: m.created_at,
                         }))}
                         onRemoveMember={handleRemoveMember}
+                        onUpdateRole={handleUpdateRole}
                         isAdmin={isAdmin}
                         currentUserId={currentUserId}
                         isLoading={loading}
@@ -180,8 +202,8 @@ export default function WorkspaceMembersPage() {
                 {/* Info notice */}
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-blue-800 text-sm">
-                        <strong>Note:</strong> To add a member, you need their User ID (UUID).
-                        Ask them to share it from their account settings.
+                        <strong>Note:</strong> To add a member, you need their registered Email Address.
+                        Ask them to share the email they used to sign up.
                     </p>
                 </div>
             </div>

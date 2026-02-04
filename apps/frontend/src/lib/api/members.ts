@@ -26,12 +26,13 @@ export type RoleEnum = "owner" | "member" | "admin";
 
 export interface MemberOut {
     user_id: string;
+    email: string;
     role: RoleEnum;
     created_at: string;
 }
 
 export interface MemberAdd {
-    user_id: string;
+    email: string;
     role: RoleEnum;
 }
 
@@ -115,6 +116,32 @@ export const membersAPI = {
             }
         } catch (error) {
             console.error("Error removing member:", error);
+            throw error;
+        }
+    },
+
+    /**
+     * List all members of a workspace
+     */
+    async listMembers(workspaceId: string): Promise<MemberOut[]> {
+        try {
+            const res = await fetch(`${API_BASE_URL}/workspaces/${workspaceId}/members`, {
+                headers: headers(),
+            });
+
+            if (res.status === 401) {
+                localStorage.removeItem("auth_token");
+                throw new Error("Session expired. Please login again.");
+            }
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || `Failed to load members list: ${res.statusText}`);
+            }
+
+            return res.json();
+        } catch (error) {
+            console.error("Error listing members:", error);
             throw error;
         }
     },

@@ -40,7 +40,7 @@ export const workspaceService = {
     },
 
 
-    async addMember(id: string, payload: { user_id: string; role: 'admin' | 'member' }) {
+    async addMember(id: string, payload: { email: string; role: 'admin' | 'member' }) {
         const { data } = await api.post(`/workspaces/${id}/members`, payload);
         return data as WorkspaceMember;
     },
