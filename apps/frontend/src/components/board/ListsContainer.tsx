@@ -58,13 +58,14 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     fetchLists();
   }, [projectId]);
 
-  const fetchLists = async () => {
+  const fetchLists = async (options: { silent?: boolean } = {}) => {
+    const { silent = false } = options;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setError(null);
 
       // Log the projectId for debugging
-      console.log('Fetching lists for project:', projectId, 'Type:', typeof projectId);
+      console.log('Fetching lists for project:', projectId, 'Type:', typeof projectId, 'Silent:', silent);
 
       // Fetch lists from API
       const listsData = await listsAPI.getProjectLists(projectId);
@@ -92,7 +93,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
       setError(errorMessage);
       console.error('Error fetching lists:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -203,22 +204,26 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
 
       // If card moved to a different list, update both lists
       const newListId = data.list_id || listId;
-      const movedToDifferentList = newListId !== listId;
+      const movedToDifferentList = String(newListId) !== String(listId);
 
-      setLists(lists.map(list => {
+      setLists(prevLists => prevLists.map(list => {
         if (movedToDifferentList) {
-          // Remove card from old list
           if (list.id === listId) {
             return {
               ...list,
               cards: (list.cards || []).filter(card => card.id !== cardId),
             };
           }
-          // Add card to new list at the correct position
           if (list.id === newListId) {
             const newCards = [...(list.cards || [])];
+            // If the card is already there (e.g. from optimistic update), don't add it again
+            if (newCards.some(c => c.id === cardId)) {
+              return {
+                ...list,
+                cards: newCards.map(c => c.id === cardId ? updatedCard : c)
+              };
+            }
             const insertPosition = data.position !== undefined ? data.position : newCards.length;
-            // Insert at the correct position, or append if position is out of bounds
             newCards.splice(Math.min(insertPosition, newCards.length), 0, updatedCard);
             return {
               ...list,
@@ -226,7 +231,6 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
             };
           }
         } else {
-          // Update card in same list
           if (list.id === listId) {
             return {
               ...list,
@@ -238,6 +242,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
         }
         return list;
       }));
+      return updatedCard;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update card';
       setError(errorMessage);
@@ -278,15 +283,18 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
   const prevListsRef = useRef<List[] | null>(null);
 
   function onDragStart(event: DragStartEvent) {
+    console.log('🚀 onDragStart triggered', event);
     // Keep a snapshot of lists before dragging so we can revert if persistence fails
     prevListsRef.current = JSON.parse(JSON.stringify(lists)); // Deep copy
 
     if (event.active.data.current?.type === "Column") {
+      console.log('📦 Dragging Column:', event.active.data.current.list.id);
       setActiveColumn(event.active.data.current.list);
       return;
     }
 
     if (event.active.data.current?.type === "Card") {
+      console.log('📇 Dragging Card:', event.active.data.current.card.id);
       setActiveCard(event.active.data.current.card);
       return;
     }
@@ -385,8 +393,10 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
   }
 
   function onDragEnd(event: DragEndEvent) {
+    console.log('🛑 onDragEnd triggered', event);
     const { active, over } = event;
     if (!over) {
+      console.log('🛑 Dropped outside any valid target (over is null)');
       setActiveColumn(null);
       setActiveCard(null);
       prevListsRef.current = null;
@@ -396,17 +406,25 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     const activeId = active.id;
     const overId = over.id;
 
-    if (activeId === overId) {
-      setActiveColumn(null);
-      setActiveCard(null);
-      prevListsRef.current = null;
-      return;
-    }
-
     const isActiveAColumn = active.data.current?.type === "Column";
+    const isActiveACard = active.data.current?.type === "Card" || !!activeCard;
+
+    console.log('🔍 onDragEnd diagnostics:', {
+      isActiveAColumn,
+      isActiveACard,
+      activeType: active.data.current?.type,
+      hasActiveCard: !!activeCard
+    });
 
     // If a column was dragged, persist the new order for lists
     if (isActiveAColumn) {
+      if (activeId === overId) {
+        console.log('🛑 Column dropped on same position');
+        setActiveColumn(null);
+        prevListsRef.current = null;
+        return;
+      }
+      console.log('🏗️ Processing Column move');
       const oldIndex = lists.findIndex(list => list.id === activeId);
       const newIndex = lists.findIndex(list => list.id === overId);
 
@@ -423,69 +441,79 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     }
 
     // Handle card moves (persist position and list change)
-    const isActiveACard = active.data.current?.type === "Card";
-    console.log('🔍 onDragEnd - isActiveACard:', isActiveACard, 'active.data.current:', active.data.current);
-
     if (isActiveACard) {
-      // Find the original list the card was in (before drag)
+      console.log('📇 Processing Card move');
       const activeIdStr = String(activeId);
-      console.log('🔍 Looking for card with ID:', activeIdStr);
-      console.log('🔍 prevListsRef.current:', prevListsRef.current?.map(l => ({ id: l.id, cardIds: l.cards?.map(c => c.id) })));
-      console.log('🔍 current lists:', lists.map(l => ({ id: l.id, cardIds: l.cards?.map(c => c.id) })));
 
+      // Find where exactly the card was BEFORE the drag started
       const originalListIndex = prevListsRef.current?.findIndex(list =>
         list.cards?.some(c => c.id === activeIdStr)
       ) ?? -1;
+      const originalList = prevListsRef.current?.[originalListIndex];
+      const originalPosition = originalList?.cards?.findIndex(c => c.id === activeIdStr) ?? -1;
 
-      // Find the target list the card ended up in (after drag)
+      // Find where the card is NOW in the local state (already updated by onDragOver)
       const targetListIndex = lists.findIndex(list => list.cards?.some(c => c.id === activeIdStr));
+      const targetList = lists[targetListIndex];
 
-      console.log('🔍 originalListIndex:', originalListIndex, 'targetListIndex:', targetListIndex);
-
-      if (targetListIndex === -1) {
-        // shouldn't happen, revert
-        console.log('❌ targetListIndex is -1, reverting');
+      if (!targetList) {
+        console.log('❌ Card not found in any list after drop');
         if (prevListsRef.current) setLists(prevListsRef.current);
         setActiveCard(null);
         prevListsRef.current = null;
         return;
       }
 
-      const targetList = lists[targetListIndex];
       const newPosition = targetList.cards!.findIndex(c => c.id === activeIdStr);
 
-      // Always prepare update data with position and list_id
-      // This ensures the backend always gets the current state
+      console.log('📊 Change Detection:', {
+        cardId: activeIdStr,
+        original: { listId: originalList?.id, pos: originalPosition },
+        current: { listId: targetList.id, pos: newPosition }
+      });
+
+      const hasMoved = (originalList?.id !== targetList.id) || (originalPosition !== newPosition);
+
+      if (!hasMoved) {
+        console.log('ℹ️ Card did not actually move (original === current)');
+        setActiveCard(null);
+        prevListsRef.current = null;
+        return;
+      }
+
+      // Prepare update data
       const updateData: any = {
         position: newPosition,
-        list_id: targetList.id  // Always include list_id
+        list_id: targetList.id
       };
 
-      console.log('🔍 About to persist card move');
-      console.log('🔍 updateData:', updateData);
-      console.log('🔍 targetList.id:', targetList.id);
+      const originalListId = originalList?.id || targetList.id;
 
-      // Get the ORIGINAL list ID (where the card was before dragging)
-      const originalListId = prevListsRef.current?.[originalListIndex]?.id || targetList.id;
-      console.log('🔍 originalListId:', originalListId);
-
-      // Persist change for the moved card
+      // Persist change
       (async () => {
-        const toastId = toast.loading('Moving card...');
+        console.log('🔄 Starting card persistence. originalListId:', originalListId, 'activeIdStr:', activeIdStr, 'updateData:', updateData);
         try {
-          console.log('🔍 Calling handleUpdateCard with:', { originalListId, activeIdStr, updateData });
-          await handleUpdateCard(originalListId, activeIdStr, updateData);
-          console.log('✅ handleUpdateCard succeeded');
+          // We call the API directly to avoid another redundant state update cycle 
+          // because onDragOver already updated the 'lists' state visually.
+          console.log('🚀 API Call: cardsAPI.updateCard(', originalListId, activeIdStr, updateData, ')');
+          const result = await cardsAPI.updateCard(originalListId, activeIdStr, updateData);
+          console.log('✅ Card persistence successful. Server response:', result);
+
+          toast.success('Position saved');
 
           // Re-fetch to ensure server canonical ordering and reflect the move
-          await fetchLists();
-          console.log('✅ fetchLists succeeded');
-          toast.success('Card moved successfully!', { id: toastId });
+          // This is critical because the backend might have reordered other cards
+          // We do it SILENTLY to avoid the jarring loading skeleton
+          console.log('🔄 Re-fetching lists to sync with server (SILENT)...');
+          await fetchLists({ silent: true });
+          console.log('✅ Sync complete');
         } catch (err) {
           console.error('❌ Failed to persist card move', err);
-          // Revert to previous state
-          if (prevListsRef.current) setLists(prevListsRef.current);
-          toast.error('Failed to move card: ' + (err instanceof Error ? err.message : 'Unknown error'), { id: toastId });
+          if (prevListsRef.current) {
+            console.log('🔄 Reverting to previous state due to error');
+            setLists(prevListsRef.current);
+          }
+          toast.error('Failed to save position: ' + (err instanceof Error ? err.message : 'Unknown error'));
         } finally {
           setActiveCard(null);
           prevListsRef.current = null;

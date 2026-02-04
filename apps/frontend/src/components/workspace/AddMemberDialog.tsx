@@ -30,7 +30,7 @@ interface AddMemberDialogProps {
 
 export function AddMemberDialog({ onAddMember, isLoading = false }: AddMemberDialogProps) {
     const [open, setOpen] = useState(false);
-    const [userId, setUserId] = useState("");
+    const [email, setEmail] = useState("");
     const [role, setRole] = useState<RoleEnum>("member");
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
@@ -39,22 +39,22 @@ export function AddMemberDialog({ onAddMember, isLoading = false }: AddMemberDia
         e.preventDefault();
         setError(null);
 
-        if (!userId.trim()) {
-            setError("User ID is required");
+        if (!email.trim()) {
+            setError("Email address is required");
             return;
         }
 
-        // Basic UUID validation
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (!uuidPattern.test(userId.trim())) {
-            setError("Please enter a valid UUID format");
+        // Basic Email validation
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email.trim())) {
+            setError("Please enter a valid email address");
             return;
         }
 
         setSubmitting(true);
         try {
-            await onAddMember(userId.trim(), role);
-            setUserId("");
+            await (onAddMember as any)(email.trim(), role);
+            setEmail("");
             setRole("member");
             setOpen(false);
         } catch (err) {
@@ -77,22 +77,23 @@ export function AddMemberDialog({ onAddMember, isLoading = false }: AddMemberDia
                     <DialogHeader>
                         <DialogTitle>Add Workspace Member</DialogTitle>
                         <DialogDescription>
-                            Enter the user ID of the person you want to add to this workspace.
+                            Enter the email address of the person you want to add to this workspace.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="userId">User ID (UUID)</Label>
+                            <Label htmlFor="email">Email Address</Label>
                             <Input
-                                id="userId"
-                                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                                value={userId}
-                                onChange={(e) => setUserId(e.target.value)}
+                                id="email"
+                                type="email"
+                                placeholder="user@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 disabled={submitting}
                             />
                             <p className="text-xs text-gray-500">
-                                Ask the user for their account UUID to add them.
+                                Enter the registered email address of the user.
                             </p>
                         </div>
 

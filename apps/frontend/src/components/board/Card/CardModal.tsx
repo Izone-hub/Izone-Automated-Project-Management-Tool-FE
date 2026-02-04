@@ -44,24 +44,34 @@ export const CardModal: React.FC<CardModalProps> = ({
   }, [onClose]);
 
   const handleSave = async () => {
+    console.log('💾 handleSave triggered. current title:', title, 'original:', card.title);
     setIsSaving(true);
     try {
       const updates: any = {};
       if (title !== card.title) updates.title = title;
       if (description !== card.description) updates.description = description;
-      if (dueDate !== card.due_date) updates.due_date = dueDate;
+
+      // Compare due dates safely
+      const originalDueDate = card.due_date ? new Date(card.due_date).toISOString() : null;
+      const newDueDate = dueDate ? new Date(dueDate).toISOString() : null;
+      if (newDueDate !== originalDueDate) updates.due_date = dueDate;
+
       if (priority !== card.priority) updates.priority = priority;
 
+      console.log('💾 Updates prepared:', updates);
+
       if (Object.keys(updates).length > 0) {
+        console.log('🚀 Calling onUpdate with:', updates);
         await onUpdate(updates);
+        console.log('✅ onUpdate completed successfully');
         toast.success('Card updated successfully');
         onClose();
       } else {
-        // No changes, just close
+        console.log('ℹ️ No changes detected, closing modal');
         onClose();
       }
     } catch (error) {
-      console.error('Failed to save card:', error);
+      console.error('❌ Failed to save card:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to save card');
     } finally {
       setIsSaving(false);

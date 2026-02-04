@@ -23,6 +23,7 @@ class CardUpdate(BaseModel):
     due_date: Optional[datetime] = None
     priority: Optional[Priority] = None
     position: Optional[int] = None
+    list_id: Optional[UUID] = None
 
 
 class CardResponse(CardBase):

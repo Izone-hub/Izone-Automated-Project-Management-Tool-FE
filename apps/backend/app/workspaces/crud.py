@@ -88,11 +88,14 @@ def add_member(db: Session, workspace_id: UUID, data: MemberAdd, requester_id: U
     if not workspace:
         raise HTTPException(status_code=404, detail="Workspace not found")
 
-    _user_exists(db, data.user_id)
+    # Find user by email
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with email {data.email} not found")
 
     member = db.query(WorkspaceMember).filter(
         WorkspaceMember.workspace_id == workspace_id,
-        WorkspaceMember.user_id == data.user_id
+        WorkspaceMember.user_id == user.id
     ).first()
 
     if member:
@@ -102,16 +105,33 @@ def add_member(db: Session, workspace_id: UUID, data: MemberAdd, requester_id: U
         db.refresh(member)
         return member
 
-    # User does not exist → create new member
+    # User does not exist in workspace → create new member
     member = WorkspaceMember(
         workspace_id=workspace_id,
-        user_id=data.user_id,
+        user_id=user.id,
         role=data.role
     )
     db.add(member)
     db.commit()
     db.refresh(member)
+    
     return member
+
+
+def get_members_with_details(db: Session, workspace_id: UUID) -> list:
+    """Returns members with their user details (email)"""
+    results = db.query(WorkspaceMember, User.email).join(
+        User, WorkspaceMember.user_id == User.id
+    ).filter(
+        WorkspaceMember.workspace_id == workspace_id
+    ).all()
+    
+    output = []
+    for member, email in results:
+        # We manually attach the email attribute so it matches MemberOut schema
+        member.email = email
+        output.append(member)
+    return output
 
 
 

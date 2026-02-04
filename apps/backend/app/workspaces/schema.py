@@ -51,12 +51,13 @@ class WorkspaceOut(OrgBase):
 
 # ---------- Member ----------
 class MemberAdd(BaseModel):
-    user_id: UUID
+    email: str
     role: RoleEnum = "member"
 
 
 class MemberOut(BaseModel):
     user_id: UUID
+    email: Optional[str] = None
     role: RoleEnum
     created_at: datetime
 

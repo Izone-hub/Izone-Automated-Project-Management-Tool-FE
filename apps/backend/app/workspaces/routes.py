@@ -4,7 +4,7 @@ from uuid import UUID
 from ..models.workspace import Workspace
 from ..db.session import get_db
 from .schema import WorkspaceCreate, WorkspaceOut, WorkspaceUpdate, MemberAdd, MemberOut
-from .crud import create_workspace, get_workspace_by_id, update_workspace, delete_workspace, add_member, remove_member
+from .crud import create_workspace, get_workspace_by_id, update_workspace, delete_workspace, add_member, remove_member, get_members_with_details
 from ..auth.security import get_current_user
 from ..models.user import User
 
@@ -67,9 +67,21 @@ def add_member_endpoint(
     member = add_member(db, workspace_id, payload, current_user.id)
     return MemberOut(
         user_id=member.user_id,
+        email=member.user.email if member.user else None,
         role=member.role,
         created_at=member.created_at
     )
+
+
+# LIST MEMBERS
+@router.get("/{workspace_id}/members", response_model=list[MemberOut])
+def list_members_endpoint(
+    workspace_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # Anyone who can see the workspace should see members (or add admin check if desired)
+    return get_members_with_details(db, workspace_id)
 
 
 # REMOVE MEMBER
