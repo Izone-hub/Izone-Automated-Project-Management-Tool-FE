@@ -5,6 +5,10 @@ from app.cards.schema import CardCreate, CardUpdate
 
 from sqlalchemy import text
 from app.models.comment import Comment
+from app.activity import crud as activity_crud
+from app.activity import schema as activity_schema
+from app.models.list import List
+from app.models.project import Project
 
 
 def create_card(
@@ -26,6 +30,27 @@ def create_card(
     db.add(new_card)
     db.commit()
     db.refresh(new_card)
+    
+    # Log Activity
+    if user_id: 
+        try:
+            # Lookup workspace_id from List -> Project
+            # Note: Ideally this would be joined query or cached, but explicit for clarity
+            list_obj = db.query(List).filter(List.id == list_id).first()
+            if list_obj:
+               project_obj = db.query(Project).filter(Project.id == list_obj.project_id).first()
+               if project_obj:
+                    activity_crud.log_activity(db, activity_schema.ActivityLogCreate(
+                        workspace_id=project_obj.workspace_id,
+                        user_id=user_id,
+                        action="CREATED",
+                        entity_type="Card",
+                        entity_id=new_card.id,
+                        details=f"Created card '{new_card.title}'"
+                    ))
+        except Exception as e:
+            print(f"Failed to log activity: {e}")
+            
     return new_card
 
 
@@ -117,10 +142,29 @@ def update_card(db: Session, card_id: str, data: CardUpdate):
     return card
 
 
-def delete_card(db: Session, card_id: str):
-    # Use raw SQL to bypass ORM schema mismatch (missing comments.card_id column)
-    # The database will handle cascade if configured, or fail if blocked,
-    # but this avoids the Psycopg2 UndefinedColumn error in SQLAlchemy.
+def delete_card(db: Session, card_id: str, user_id: str | None = None):
+    # Fetch card details for logging before deletion
+    card = get_card(db, card_id)
+    if card:
+         try:
+            # Lookup workspace_id
+            list_obj = db.query(List).filter(List.id == card.list_id).first()
+            if list_obj:
+               project_obj = db.query(Project).filter(Project.id == list_obj.project_id).first()
+               if project_obj:
+                    if user_id:
+                        activity_crud.log_activity(db, activity_schema.ActivityLogCreate(
+                            workspace_id=project_obj.workspace_id,
+                            user_id=user_id,
+                            action="DELETED",
+                            entity_type="Card",
+                            entity_id=None,
+                            details=f"Deleted card '{card.title}'"
+                        ))
+         except Exception as e:
+            print(f"Failed to log activity: {e}")
+
+    # Use raw SQL to bypass ORM schema mismatch
     db.execute(text("DELETE FROM cards WHERE id = :id"), {"id": card_id})
     db.commit()
     return True

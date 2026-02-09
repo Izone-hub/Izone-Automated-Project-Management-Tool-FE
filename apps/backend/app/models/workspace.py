@@ -48,22 +48,3 @@ class Workspace(Base):
     )
 
 
-# ------------------- WorkspaceMember -------------------
-class WorkspaceMember(Base):
-    __tablename__ = "workspace_members"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workspace_id = Column(UUID(as_uuid=True), ForeignKey("workspaces.id"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    role = Column(Enum(WorkspaceRole), default=WorkspaceRole.member)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    workspace = relationship(
-        "Workspace",
-        back_populates="members"
-    )
-
-    user = relationship(
-        "User",
-        back_populates="workspace_memberships"
-    )

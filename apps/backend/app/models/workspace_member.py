@@ -1,10 +1,9 @@
 from sqlalchemy.dialects.postgresql import UUID
-from apps.backend.app.db.session import Base
 from sqlalchemy import Column, String, DateTime, ForeignKey, Text, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.session import Base
-from apps.backend.app.models.workspace import WorkspaceRole
+from app.models.workspace import WorkspaceRole
 import uuid
 import enum
 
