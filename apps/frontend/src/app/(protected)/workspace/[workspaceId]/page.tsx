@@ -102,11 +102,12 @@ export default function WorkspaceDetailPage() {
 
             <div className="flex items-center gap-6 text-sm text-gray-500 mt-4">
               <div>
-                Created: {new Date(currentWorkspace.createdAt).toLocaleDateString()}
+                Created: {currentWorkspace.createdAt ? new Date(currentWorkspace.createdAt).toLocaleDateString() : 'Unknown'}
               </div>
               <div>
-                Updated: {currentWorkspace.updatedAt ?
-                  new Date(currentWorkspace.updatedAt).toLocaleDateString() : 'Never'}
+                Updated: {currentWorkspace.updatedAt && new Date(currentWorkspace.updatedAt).getFullYear() > 1970
+                  ? new Date(currentWorkspace.updatedAt).toLocaleDateString()
+                  : 'Never'}
               </div>
               <Link
                 href={`/workspace/${workspaceId}/members`}

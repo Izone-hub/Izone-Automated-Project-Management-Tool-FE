@@ -28,10 +28,20 @@ export const timeTrackingService = {
         return data;
     },
 
-    // Get the currently running timer
+    // Get the currently running timer (global for user)
     async getActiveTimer(): Promise<TimeEntry | null> {
         try {
             const { data } = await api.get('/time-entries/active');
+            return data;
+        } catch (error) {
+            return null;
+        }
+    },
+
+    // Get the currently running timer for a specific card
+    async getActiveTimerByCard(cardId: string): Promise<TimeEntry | null> {
+        try {
+            const { data } = await api.get(`/time-entries/active/card/${cardId}`);
             return data;
         } catch (error) {
             return null;

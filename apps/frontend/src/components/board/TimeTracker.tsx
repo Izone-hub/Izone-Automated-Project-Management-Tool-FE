@@ -17,9 +17,9 @@ export const TimeTracker: React.FC<TimeTrackerProps> = ({ cardId }) => {
     useEffect(() => {
         const loadActiveTimer = async () => {
             try {
-                // Ideally this endpoints filters by task, or we check if the active global timer matches this task
-                const entry = await timeTrackingService.getActiveTimer();
-                if (entry && entry.card_id === cardId && !entry.end_time) {
+                // Use card-specific endpoint to get active timer for THIS card
+                const entry = await timeTrackingService.getActiveTimerByCard(cardId);
+                if (entry && !entry.end_time) {
                     setActiveEntry(entry);
                     const start = new Date(entry.start_time).getTime();
                     const now = new Date().getTime();

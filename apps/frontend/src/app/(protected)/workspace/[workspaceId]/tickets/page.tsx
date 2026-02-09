@@ -12,6 +12,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export default function TicketsPage() {
     const params = useParams();
@@ -57,7 +68,6 @@ export default function TicketsPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Delete ticket?")) return;
         try {
             await ticketService.deleteTicket(id);
             setTickets(prev => prev.filter(t => t.id !== id));
@@ -147,9 +157,30 @@ export default function TicketsPage() {
                                         <span className="text-sm text-gray-600 capitalize">{ticket.priority}</span>
                                     </td>
                                     <td className="p-4 text-right">
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(ticket.id)}>
-                                            <Trash2 className="w-4 h-4 text-red-500" />
-                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Delete this ticket?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete the ticket.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => handleDelete(ticket.id)}
+                                                        className="bg-red-600 hover:bg-red-700"
+                                                    >
+                                                        Delete
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </td>
                                 </tr>
                             ))
