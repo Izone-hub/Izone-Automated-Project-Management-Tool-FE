@@ -16,6 +16,7 @@ import {
 import { useTheme } from "next-themes";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DynamicBreadcrumb } from "@/components/DynamicBreadcrumb";
+import { NotificationBell } from "@/components/common/NotificationBell";
 
 interface NavbarProps {
   className?: string;
@@ -46,6 +47,8 @@ export const Navbar = ({ className }: NavbarProps) => {
       <div className="flex items-center gap-4">
         {/* Removed static Dashboard link as it's now in breadcrumbs/sidebar */}
         {/* <Link href="/">Dashboard</Link> */}
+
+        <NotificationBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

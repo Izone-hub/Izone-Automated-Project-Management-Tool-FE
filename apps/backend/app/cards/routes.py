@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.cards import crud
 from app.cards.schema import CardCreate, CardUpdate, CardResponse
+from app.auth.security import get_current_user
+from app.models.user import User
 
 
 router = APIRouter(
@@ -16,9 +18,10 @@ router = APIRouter(
 def create_card(
     list_id: str,
     data: CardCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    return crud.create_card(db, list_id, data)
+    return crud.create_card(db, list_id, data, str(current_user.id))
 
 
 @router.get("/", response_model=list[CardResponse])
@@ -33,7 +36,8 @@ def get_cards(
 def update_card(
     card_id: str,
     data: CardUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     updated = crud.update_card(db, card_id, data)
     if not updated:
@@ -44,8 +48,9 @@ def update_card(
 @router.delete("/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_card(
     card_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    deleted = crud.delete_card(db, card_id)
+    deleted = crud.delete_card(db, card_id, str(current_user.id))
     if not deleted:
         raise HTTPException(status_code=404, detail="Card not found")

@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Column, String, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
-from app.db.base import Base
+from app.db.session import Base
 
 class List(Base):
     __tablename__ = "lists"
@@ -15,3 +15,6 @@ class List(Base):
 
     title = Column(String, nullable=False)
     position = Column(Integer, nullable=False)
+    
+    from sqlalchemy.orm import relationship
+    cards = relationship("Card", back_populates="list", cascade="all, delete-orphan")

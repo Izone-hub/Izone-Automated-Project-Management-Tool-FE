@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import { Card as CardType } from '@/types/card';
 import { X, Calendar, Tag, Users, Paperclip, Save, Clock } from 'lucide-react';
 import CommentsList from '@/components/comments/CommentsList';
+import { AttachmentList } from '@/components/board/Card/AttachmentList';
+import { TimeTracker } from '@/components/board/TimeTracker';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +35,7 @@ export const CardModal: React.FC<CardModalProps> = ({
   const [dueDate, setDueDate] = useState(card.due_date || '');
   const [priority, setPriority] = useState(card.priority);
   const [isSaving, setIsSaving] = useState(false);
+  const [attachmentVersion, setAttachmentVersion] = useState(0);
 
   // Close on escape key
   useEffect(() => {
@@ -160,14 +163,22 @@ export const CardModal: React.FC<CardModalProps> = ({
 
             {/* Comments */}
             <CommentsList cardId={card.id} />
+
+            {/* Attachments List */}
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span>Attachments</span>
+              </h3>
+              <AttachmentList cardId={card.id} key={attachmentVersion} />
+            </div>
           </div>
 
           {/* Right Column - Actions */}
           <div className="space-y-4">
             <h3 className="font-semibold text-gray-700">Add to card</h3>
 
-
-
+            {/* Time Tracker */}
+            <TimeTracker cardId={card.id} />
             {/* Due Date */}
             <div className="p-3 border rounded-lg">
               <h4 className="font-medium mb-2 flex items-center gap-2">
@@ -199,10 +210,46 @@ export const CardModal: React.FC<CardModalProps> = ({
             </div>
 
             {/* Attachments */}
-            <button className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-100 rounded-lg">
-              <Paperclip className="w-5 h-5 text-gray-500" />
-              <span>Attachments</span>
-            </button>
+            <div className="space-y-2">
+              <input
+                type="file"
+                id="file-upload"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  const toastId = toast.loading("Uploading...");
+                  try {
+                    // Dynamic import to avoid circular dependency issues if any, or just use the service directly
+                    const { attachmentService } = await import('@/lib/api/attachments');
+                    await attachmentService.uploadFile(card.id, file);
+                    toast.success("File uploaded", { id: toastId });
+                    // Force refresh of attachments? 
+                    // Ideally AttachmentList should have a refresh trigger, but for MVP checking reload
+                    // For a smoother UX, we might need to lift the state or use a context, 
+                    // but simply remounting the list or letting it poll/refresh on its own is ok for now.
+                    // A simple hack is to increment a version key on the list.
+                    setAttachmentVersion(prev => prev + 1);
+                  } catch (error) {
+                    toast.error("Upload failed", { id: toastId });
+                  } finally {
+                    // Reset input
+                    e.target.value = '';
+                  }
+                }}
+              />
+
+              <h3 className="font-semibold text-gray-700 flex justify-between items-center">
+                <label
+                  htmlFor="file-upload"
+                  className="flex items-center gap-3 p-3 w-full text-left hover:bg-gray-100 rounded-lg cursor-pointer"
+                >
+                  <Paperclip className="w-5 h-5 text-gray-500" />
+                  <span>Attachments</span>
+                </label>
+              </h3>
+            </div>
           </div>
         </div>
 

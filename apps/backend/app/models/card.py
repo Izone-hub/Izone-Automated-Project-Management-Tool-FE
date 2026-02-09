@@ -12,7 +12,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
-from app.db.base import Base
+from app.db.session import Base
 
 
 class Priority(str, enum.Enum):
@@ -58,4 +58,7 @@ class Card(Base):
         onupdate=func.now()
     )
 
+    list = relationship("List", back_populates="cards")
     comments = relationship("Comment", back_populates="card", cascade="all, delete-orphan")
+    time_entries = relationship("TimeEntry", back_populates="card", cascade="all, delete-orphan")
+    attachments = relationship("Attachment", back_populates="card", cascade="all, delete-orphan")

@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from uuid import UUID
 
-from ..models.workspace import Workspace, WorkspaceMember
+from ..models.workspace import Workspace
+from ..models.workspace_member import WorkspaceMember
 from ..models.user import User
 from ..workspaces.schema import WorkspaceCreate, WorkspaceUpdate, MemberAdd
 from .schema import RoleEnum

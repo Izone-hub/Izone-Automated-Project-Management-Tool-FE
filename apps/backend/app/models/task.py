@@ -39,5 +39,4 @@ class Task(Base):
     project = relationship("Project", back_populates="tasks")
     assignee = relationship("User", foreign_keys=[assignee_id])
     creator = relationship("User", foreign_keys=[created_by])
-    attachments = relationship("Attachment", back_populates="task", cascade="all, delete-orphan")
-    time_entries = relationship("TimeEntry", back_populates="task", cascade="all, delete-orphan")
+    # attachments = relationship("Attachment", back_populates="task", cascade="all, delete-orphan")

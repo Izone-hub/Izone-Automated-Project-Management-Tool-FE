@@ -10,6 +10,7 @@ import Link from 'next/link';
 
 // IMPORT BOARDS PAGE HERE 👇
 import BoardsPage from '@/app/(protected)/boards/page';
+import { ActivityFeed } from '@/components/common/ActivityFeed';
 // or wherever your boards component is located
 
 export default function WorkspaceDetailPage() {
@@ -101,11 +102,12 @@ export default function WorkspaceDetailPage() {
 
             <div className="flex items-center gap-6 text-sm text-gray-500 mt-4">
               <div>
-                Created: {new Date(currentWorkspace.createdAt).toLocaleDateString()}
+                Created: {currentWorkspace.createdAt ? new Date(currentWorkspace.createdAt).toLocaleDateString() : 'Unknown'}
               </div>
               <div>
-                Updated: {currentWorkspace.updatedAt ?
-                  new Date(currentWorkspace.updatedAt).toLocaleDateString() : 'Never'}
+                Updated: {currentWorkspace.updatedAt && new Date(currentWorkspace.updatedAt).getFullYear() > 1970
+                  ? new Date(currentWorkspace.updatedAt).toLocaleDateString()
+                  : 'Never'}
               </div>
               <Link
                 href={`/workspace/${workspaceId}/members`}
@@ -114,12 +116,26 @@ export default function WorkspaceDetailPage() {
                 <Users className="w-4 h-4" />
                 Manage Members
               </Link>
+              <Link
+                href={`/workspace/${workspaceId}/tickets`}
+                className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+              >
+                <div className="w-4 h-4">🎫</div>
+                View Tickets
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* RENDER BOARDS HERE 👇 */}
-        <BoardsPage />
+        {/* RENDER BOARDS & ACTIVITY FEED */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          <div className="xl:col-span-3">
+            <BoardsPage />
+          </div>
+          <div className="xl:col-span-1 h-full">
+            <ActivityFeed workspaceId={workspaceId} />
+          </div>
+        </div>
 
       </main>
     </div>
