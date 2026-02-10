@@ -25,7 +25,7 @@ class Task(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    title = Column(String, nullable=False)
+    name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=True)
     status = Column(Enum(TaskStatus), default=TaskStatus.todo)
