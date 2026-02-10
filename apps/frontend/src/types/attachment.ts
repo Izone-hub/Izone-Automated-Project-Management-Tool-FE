@@ -1,11 +1,13 @@
 export interface Attachment {
     id: string;
-    originalName: string;
-    mimeType: string;
-    size: number;
-    url: string; // The URL to view/download the file
-    createdAt: string;
-    // Optional: Add upload progress for local state tracking
+    card_id: string;
+    file_path: string;
+    uploaded_at: string;
+    // Derived or optional properties for UI
+    originalName?: string;
+    mimeType?: string;
+    size?: number;
+    url?: string;
     uploadStatus?: 'uploading' | 'completed' | 'error';
     progress?: number;
 }

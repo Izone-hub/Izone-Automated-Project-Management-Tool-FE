@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Card as CardType } from '@/types/card';
 import { Attachment } from '@/types/attachment';
 import { X, Calendar, Tag, Users, Paperclip, Save, Clock } from 'lucide-react';
-import { attachmentService } from '@/components/services/attachment.service';
+import { attachmentService } from '@/services/attachment';
 import { FileUploader } from './FileUploader';
 import { AttachmentList } from './AttachmentList';
 import CommentsList from '@/components/comments/CommentsList';
@@ -42,6 +42,15 @@ export const CardModal: React.FC<CardModalProps> = ({
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
+
+  // Fetch attachments when modal opens or showAttachments is toggled
+  useEffect(() => {
+    if (showAttachments && card.id) {
+      attachmentService.getTaskAttachments(card.id)
+        .then(setAttachments)
+        .catch(err => toast.error('Failed to load attachments'));
+    }
+  }, [showAttachments, card.id]);
 
   // Close on escape key
   useEffect(() => {
@@ -101,9 +110,7 @@ export const CardModal: React.FC<CardModalProps> = ({
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     try {
-      const newAttachment = await attachmentService.upload(file, (progress) => {
-        console.log(`Upload progress: ${progress}%`);
-      });
+      const newAttachment = await attachmentService.uploadAttachment(card.id, file);
       setAttachments(prev => [...prev, newAttachment]);
       toast.success(`Uploaded ${file.name}`);
     } catch (error) {
@@ -116,7 +123,7 @@ export const CardModal: React.FC<CardModalProps> = ({
 
   const handleDeleteAttachment = async (id: string) => {
     try {
-      await attachmentService.delete(id);
+      await attachmentService.deleteAttachment(id);
       setAttachments(prev => prev.filter(a => a.id !== id));
     } catch (error) {
       console.error('Delete failed:', error);

@@ -38,7 +38,7 @@ def create_task(db: Session, data: TaskCreate, user_id: str) -> Task:
 
     task = Task(
         project_id=data.project_id,
-        title=data.title,
+        name=data.name,
         description=data.description,
         due_date=data.due_date,
         status=data.status,
