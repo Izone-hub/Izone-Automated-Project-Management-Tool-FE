@@ -21,7 +21,7 @@ class User(Base):
         "Workspace",
         back_populates="owner",
         lazy="joined",
-        foreign_keys="[Workspace.owner_id]"
+        foreign_keys="Workspace.owner_id"
     )
 
     # Workspaces this user created
@@ -29,7 +29,7 @@ class User(Base):
         "Workspace",
         back_populates="creator",
         lazy="joined",
-        foreign_keys="[Workspace.created_by]"
+        foreign_keys="Workspace.created_by"
     )
 
     # Membership in workspaces
