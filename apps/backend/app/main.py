@@ -10,6 +10,7 @@ from .comments import routes as comment_router
 from .lists import routes as list_router
 from app.cards.routes import router as card_router
 from  app.attachment.routes import router as  attachment_router
+from app.audit_log.routes import router as audit_log_router 
 
 # Create all database tables
 Base.metadata.create_all(bind=engine)
@@ -26,6 +27,7 @@ app.include_router(comment_router.router)
 app.include_router(list_router.router)
 app.include_router(card_router)
 app.include_router(attachment_router)
+app.include_router(audit_log_router) 
 
 # Configure CORS
 

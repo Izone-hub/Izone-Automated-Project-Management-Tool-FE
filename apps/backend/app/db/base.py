@@ -8,4 +8,5 @@ Base.metadata.create_all() in main.py can create all tables.
 from app.db.session import Base
 
 
-from app.models.user import *
+from app.models.user import * 
+from app.models.audit_log import AuditLog
