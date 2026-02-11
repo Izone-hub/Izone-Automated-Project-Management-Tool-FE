@@ -10,6 +10,7 @@ def create_attachment(db: Session, payload: AttachmentCreate) -> Attachment:
    
     attachment = Attachment(
         file_path=payload["file_path"],
+        task_id=payload["task_id"],
         card_id=payload["card_id"],
         file_name=payload["file_name"]
     )
@@ -23,7 +24,7 @@ def get_attachments_by_task(db: Session, task_id: UUID) -> List[Attachment]:
  
     return (
         db.query(Attachment)
-        .filter(Attachment.card_id)
+        .filter(Attachment.task_id == task_id)
         .order_by(Attachment.uploaded_at.desc())
         .all()
     )
