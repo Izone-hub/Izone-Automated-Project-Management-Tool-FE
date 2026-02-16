@@ -1,4 +1,4 @@
-# app/auth/auth.py
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
@@ -31,9 +31,7 @@ def register_user(user: schema.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    # ---------------------------
-    # CREATE DEFAULT WORKSPACE
-    # ---------------------------
+  
     default_ws = Workspace(
         name=f"{new_user.full_name or 'My'} Workspace",
         description="Default workspace created automatically",
@@ -41,9 +39,9 @@ def register_user(user: schema.UserCreate, db: Session = Depends(get_db)):
         created_by=new_user.id
     )
     db.add(default_ws)
-    db.flush()   # to get workspace ID
+    db.flush()  
 
-    # add user as admin
+   
     db.add(WorkspaceMember(
         workspace_id=default_ws.id,
         user_id=new_user.id,
@@ -51,7 +49,7 @@ def register_user(user: schema.UserCreate, db: Session = Depends(get_db)):
     ))
 
     db.commit()
-    # ---------------------------
+  
 
     return new_user
 

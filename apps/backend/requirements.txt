@@ -1,10 +1,13 @@
 alembic==1.13.3
 annotated-types==0.7.0
 anyio==4.12.1
+Authlib==1.6.7
 bcrypt==4.0.1
 certifi==2026.1.4
+cffi==2.0.0
 charset-normalizer==3.4.4
 click==8.3.1
+cryptography==46.0.5
 dnspython==2.8.0
 ecdsa==0.19.1
 email_validator==2.2.0
@@ -23,6 +26,7 @@ passlib==1.7.4
 pluggy==1.6.0
 psycopg2-binary==2.9.9
 pyasn1==0.6.2
+pycparser==3.0
 pydantic==2.8.2
 pydantic-settings==2.5.2
 pydantic_core==2.20.1
