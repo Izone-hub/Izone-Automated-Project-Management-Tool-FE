@@ -1,18 +1,19 @@
-from uuid import UUID
-from datetime import datetime
 from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+from uuid import UUID
 
 class AttachmentBase(BaseModel):
     file_path: str
-    file_name: str
-    card_id: UUID | None
 
 class AttachmentCreate(AttachmentBase):
     pass
 
-class AttachmentOut(AttachmentBase):
+class AttachmentResponse(AttachmentBase):
     id: UUID
+    card_id: UUID
     uploaded_at: datetime
+    filename: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -1,0 +1,1 @@
+http://localhost:3000/auth/success?token=dev-token-ae1a6549-208d-4440-b15e-7c3f814dee0d

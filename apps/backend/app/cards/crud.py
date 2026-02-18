@@ -118,9 +118,9 @@ def update_card(db: Session, card_id: str, data: CardUpdate):
 
 
 def delete_card(db: Session, card_id: str):
-    # Use raw SQL to bypass ORM schema mismatch (missing comments.card_id column)
-    # The database will handle cascade if configured, or fail if blocked,
-    # but this avoids the Psycopg2 UndefinedColumn error in SQLAlchemy.
-    db.execute(text("DELETE FROM cards WHERE id = :id"), {"id": card_id})
+    card = get_card(db, card_id)
+    if not card:
+        return None
+    db.delete(card)
     db.commit()
-    return True
+    return card

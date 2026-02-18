@@ -59,3 +59,4 @@ class Card(Base):
     )
 
     comments = relationship("Comment", back_populates="card", cascade="all, delete-orphan")
+    attachments = relationship("Attachment", cascade="all, delete-orphan")

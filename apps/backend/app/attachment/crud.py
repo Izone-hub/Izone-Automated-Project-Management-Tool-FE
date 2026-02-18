@@ -6,7 +6,7 @@ from app.models.attachment import Attachment
 from app.attachment.schema  import AttachmentCreate
 
 
-def create_attachment(db: Session, payload: AttachmentCreate) -> Attachment:
+def create_attachment(db: Session, payload: dict) -> Attachment:
    
     attachment = Attachment(
         file_path=payload["file_path"],
@@ -23,7 +23,7 @@ def get_attachments_by_task(db: Session, task_id: UUID) -> List[Attachment]:
  
     return (
         db.query(Attachment)
-        .filter(Attachment.card_id)
+        .filter(Attachment.card_id == task_id)
         .order_by(Attachment.uploaded_at.desc())
         .all()
     )

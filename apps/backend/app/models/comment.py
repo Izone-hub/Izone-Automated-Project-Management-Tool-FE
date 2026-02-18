@@ -11,7 +11,7 @@ class Comment(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Now using the real card_id column added via fix_db_schema.py
-    card_id = Column(UUID(as_uuid=True), ForeignKey("cards.id"), nullable=True) # Exists now.
+    card_id = Column(UUID(as_uuid=True), ForeignKey("cards.id", ondelete="CASCADE"), nullable=True) # Exists now.
     task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id"), nullable=True) # Exists from before, now nullable.
     content = Column(Text, nullable=False)
     # Allow mapping to exist even if we don't have a user ID (for public comments)

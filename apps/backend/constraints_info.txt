@@ -1,0 +1,19 @@
+
+--- Constraints for comments ---
+Name: comments_card_id_fkey, Column: card_id, RefTable: cards, RefCol: id
+Name: comments_author_id_fkey, Column: author_id, RefTable: users, RefCol: id
+Name: comments_task_id_fkey, Column: task_id, RefTable: tasks, RefCol: id
+
+--- Constraints for attachments ---
+Name: attachments_card_id_fkey, Column: card_id, RefTable: cards, RefCol: id
+
+--- Constraints for time_entries ---
+Name: time_entries_user_id_fkey, Column: user_id, RefTable: users, RefCol: id
+Name: time_entries_task_id_fkey, Column: task_id, RefTable: tasks, RefCol: id
+
+--- Constraints for cards ---
+Name: cards_list_id_fkey, Column: list_id, RefTable: lists, RefCol: id
+Name: cards_created_by_fkey, Column: created_by, RefTable: users, RefCol: id
+
+--- Constraints for lists ---
+Name: lists_project_id_fkey, Column: project_id, RefTable: projects, RefCol: id

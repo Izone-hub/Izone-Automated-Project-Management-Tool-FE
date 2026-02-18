@@ -1,5 +1,29 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from os import environ
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load environment variables from apps/backend/.env if present
+env_path = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(env_path)
+try:
+    # preferred: use Starlette's SessionMiddleware (requires itsdangerous)
+    from starlette.middleware.sessions import SessionMiddleware  # type: ignore
+    _have_session_middleware = True
+except Exception:
+    # itsdangerous not installed or import failed — provide a tiny fallback
+    _have_session_middleware = False
+
+    class _SimpleSessionMiddleware:
+        def __init__(self, app, secret_key: str = "secret"):
+            self.app = app
+
+        async def __call__(self, scope, receive, send):
+            if scope.get("type") == "http":
+                # ensure a session dict exists on the scope
+                scope.setdefault("session", {})
+            await self.app(scope, receive, send)
 from .auth.auth import router as auth_router
 from .db.session import engine
 from .db.base import Base
@@ -17,6 +41,17 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+# Session middleware is required for OAuth flows to store state.
+if _have_session_middleware:
+    app.add_middleware(
+        SessionMiddleware, 
+        secret_key=environ.get("SECRET_KEY", "CHANGE_ME"),
+        session_cookie="izone_session",
+        same_site="lax",  # Required for some browsers during redirects
+        https_only=False, # Set to True in production with SSL
+    )
+else:
+    app.add_middleware(_SimpleSessionMiddleware, secret_key=environ.get("SECRET_KEY", "CHANGE_ME"))
 
 
 app.include_router(auth_router)
