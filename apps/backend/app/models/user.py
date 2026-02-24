@@ -38,3 +38,18 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan"
     )
+    sent_invitations = relationship(
+        "WorkspaceInvitation",
+  
+        foreign_keys="[WorkspaceInvitation.invited_by_id]", 
+  
+        back_populates="invited_by" 
+    )
+    received_invitations = relationship(
+        "WorkspaceInvitation",
+      
+        foreign_keys="[WorkspaceInvitation.invited_user_id]", 
+      
+        back_populates="invitee"
+    )
+

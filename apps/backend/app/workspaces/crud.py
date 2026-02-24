@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from uuid import UUID
+from uuid import UUID, uuid4
+from datetime import datetime, timedelta
 
-from ..models.workspace import Workspace, WorkspaceMember
+from ..models.workspace import Workspace, WorkspaceMember, WorkspaceInvitation
 from ..models.user import User
 from ..workspaces.schema import WorkspaceCreate, WorkspaceUpdate, MemberAdd
 from .schema import RoleEnum
@@ -16,16 +17,29 @@ def _user_exists(db: Session, user_id: UUID) -> User:
     return user
 
 
+def get_workspace_by_id(db: Session, workspace_id: UUID) -> Workspace | None:
+    return db.get(Workspace, workspace_id)
+
+
+def is_admin(db: Session, workspace_id: UUID, user_id: UUID) -> bool:
+    member = db.query(WorkspaceMember).filter(
+        WorkspaceMember.workspace_id == workspace_id,
+        WorkspaceMember.user_id == user_id,
+        WorkspaceMember.role == RoleEnum.admin
+    ).first()
+    return member is not None
+
+
 # ---------- Workspace ----------
 def create_workspace(db: Session, data: WorkspaceCreate, current_user_id: UUID) -> Workspace:
     ws = Workspace(
         name=data.name,
         description=data.description or None,
-        owner_id=current_user_id,        # you already have this
-        created_by=current_user_id       # THIS IS THE MISSING LINE
+        owner_id=current_user_id,
+        created_by=current_user_id
     )
     db.add(ws)
-    db.flush()  # generates ws.id
+    db.flush()
 
     # Owner automatically becomes admin
     db.add(WorkspaceMember(
@@ -38,14 +52,12 @@ def create_workspace(db: Session, data: WorkspaceCreate, current_user_id: UUID) 
     db.refresh(ws)
     return ws
 
-def get_workspace_by_id(db: Session, workspace_id: UUID) -> Workspace | None:
-    return db.get(Workspace, workspace_id)
-
 
 def update_workspace(db: Session, workspace_id: UUID, data: WorkspaceUpdate, user_id: UUID) -> Workspace:
     ws = get_workspace_by_id(db, workspace_id)
     if not ws:
         raise HTTPException(status_code=404, detail="Workspace not found")
+
     if ws.owner_id != user_id:
         raise HTTPException(status_code=403, detail="Only owner can update")
 
@@ -62,6 +74,7 @@ def delete_workspace(db: Session, workspace_id: UUID, user_id: UUID) -> bool:
     ws = get_workspace_by_id(db, workspace_id)
     if not ws:
         return False
+
     if ws.owner_id != user_id:
         raise HTTPException(status_code=403, detail="Only owner can delete")
 
@@ -71,15 +84,6 @@ def delete_workspace(db: Session, workspace_id: UUID, user_id: UUID) -> bool:
 
 
 # ---------- Members ----------
-def is_admin(db: Session, workspace_id: UUID, user_id: UUID) -> bool:
-    member = db.query(WorkspaceMember).filter(
-        WorkspaceMember.workspace_id == workspace_id,
-        WorkspaceMember.user_id == user_id,
-        WorkspaceMember.role == RoleEnum.admin
-    ).first()
-    return member is not None
-
-
 def add_member(db: Session, workspace_id: UUID, data: MemberAdd, requester_id: UUID) -> WorkspaceMember:
     if not is_admin(db, workspace_id, requester_id):
         raise HTTPException(status_code=403, detail="Only admin can add members")
@@ -88,7 +92,6 @@ def add_member(db: Session, workspace_id: UUID, data: MemberAdd, requester_id: U
     if not workspace:
         raise HTTPException(status_code=404, detail="Workspace not found")
 
-    # Find user by email
     user = db.query(User).filter(User.email == data.email).first()
     if not user:
         raise HTTPException(status_code=404, detail=f"User with email {data.email} not found")
@@ -99,13 +102,11 @@ def add_member(db: Session, workspace_id: UUID, data: MemberAdd, requester_id: U
     ).first()
 
     if member:
-        # User exists → update role
         member.role = data.role
         db.commit()
         db.refresh(member)
         return member
 
-    # User does not exist in workspace → create new member
     member = WorkspaceMember(
         workspace_id=workspace_id,
         user_id=user.id,
@@ -114,25 +115,21 @@ def add_member(db: Session, workspace_id: UUID, data: MemberAdd, requester_id: U
     db.add(member)
     db.commit()
     db.refresh(member)
-    
     return member
 
 
 def get_members_with_details(db: Session, workspace_id: UUID) -> list:
-    """Returns members with their user details (email)"""
     results = db.query(WorkspaceMember, User.email).join(
         User, WorkspaceMember.user_id == User.id
     ).filter(
         WorkspaceMember.workspace_id == workspace_id
     ).all()
-    
+
     output = []
     for member, email in results:
-        # We manually attach the email attribute so it matches MemberOut schema
         member.email = email
         output.append(member)
     return output
-
 
 
 def remove_member(db: Session, workspace_id: UUID, user_id: UUID, requester_id: UUID) -> None:
@@ -143,16 +140,87 @@ def remove_member(db: Session, workspace_id: UUID, user_id: UUID, requester_id: 
         WorkspaceMember.workspace_id == workspace_id,
         WorkspaceMember.user_id == user_id
     ).first()
+
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
 
-    # Prevent removing last admin
     admin_count = db.query(WorkspaceMember).filter(
         WorkspaceMember.workspace_id == workspace_id,
         WorkspaceMember.role == RoleEnum.admin
     ).count()
+
     if member.role == RoleEnum.admin and admin_count <= 1:
         raise HTTPException(status_code=400, detail="Cannot remove the last admin")
 
     db.delete(member)
     db.commit()
+
+
+# ---------- Invitations ----------
+def create_workspace_invitation(
+    db: Session,
+    obj_in,
+    workspace_id: UUID,
+    invited_by_id: UUID
+):
+    if not is_admin(db, workspace_id, invited_by_id):
+        raise HTTPException(status_code=403, detail="Only admin can invite users")
+
+    workspace = get_workspace_by_id(db, workspace_id)
+    if not workspace:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+    user = db.query(User).filter(User.email == obj_in.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    token = str(uuid4())
+
+
+    invitation = WorkspaceInvitation(
+        invited_user_id=user.id,
+        workspace_id=workspace_id,
+        invited_by_id=invited_by_id,
+        token=token,
+        expires_at=datetime.utcnow() + timedelta(days=1)
+    )
+
+    db.add(invitation)
+    db.commit()
+    db.refresh(invitation)
+    return invitation
+
+
+def get_invitation_by_token(db: Session, token: str):
+    invitation = db.query(WorkspaceInvitation).filter(
+        WorkspaceInvitation.token == token
+    ).first()
+
+    if not invitation:
+        return None
+
+    if invitation.expires_at < datetime.utcnow():
+        return None
+
+    return invitation
+
+
+def accept_workspace_invitation(db: Session, invitation, user_id: UUID):
+    existing_member = db.query(WorkspaceMember).filter(
+        WorkspaceMember.workspace_id == invitation.workspace_id,
+        WorkspaceMember.user_id == user_id
+    ).first()
+
+    if existing_member:
+        raise HTTPException(status_code=400, detail="User already a member")
+
+    member = WorkspaceMember(
+        workspace_id=invitation.workspace_id,
+        user_id=user_id,
+        role=RoleEnum.member
+    )
+
+    db.add(member)
+    db.delete(invitation)
+    db.commit()
+    db.refresh(member)
+    return member
