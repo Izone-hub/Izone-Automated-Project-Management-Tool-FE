@@ -1,8 +1,11 @@
-from pydantic import BaseModel, Field, ConfigDict,  field_validator
+from pydantic import BaseModel, Field, ConfigDict,  field_validator, EmailStr
 from typing import Optional
 from datetime import datetime
 from uuid import UUID 
 from enum import Enum
+from app.models import WorkspaceRole
+
+
 
 
 class RoleEnum(str, Enum):
@@ -63,3 +66,20 @@ class MemberOut(BaseModel):
 
     class Config:
          orm_mode = True
+class WorkspaceInvitationCreate(BaseModel):
+    email: EmailStr
+    role: WorkspaceRole = WorkspaceRole.member
+
+# Data for the API response
+class WorkspaceInvitationResponse(BaseModel):
+    id: UUID
+    workspace_id: UUID
+    email: EmailStr
+    role: WorkspaceRole
+    token: str
+    is_accepted: bool
+    expires_at: datetime
+    created_at: datetime
+    
+    # Required for Pydantic V2 (which your logs show you are using)
+    model_config = ConfigDict(from_attributes=True)
