@@ -8,10 +8,36 @@ from app.utils.email import send_invitation_email
 from app.models import Workspace, WorkspaceInvitation, User
 from app.workspace_invitation.schema import WorkspaceInvitationCreate, WorkspaceInvitationResponse
 from app.auth.auth import get_current_user
-from app.workspace_invitation.crud import create_workspace_invitation, get_invitation_by_token
+from app.workspace_invitation.crud import accept_workspace_invitation, create_workspace_invitation, get_invitation_by_token
 
 router = APIRouter()
 
+
+
+@router.post("/workspaces/invitations/{token}/accept")
+async def accept_invite(
+    token: str, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+   
+    invite = get_invitation_by_token(db, token)
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invitation invalid or expired")
+
+  
+    if invite.invited_user_id != current_user.id:
+        raise HTTPException(
+            status_code=403, 
+            detail="This invitation was sent to a different email address."
+        )
+
+    try:
+        new_member = accept_workspace_invitation(db, invite, current_user.id)
+        return {"status": "success", "workspace_id": new_member.workspace_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to join workspace")
+    
 @router.post("/workspaces/{workspace_id}/invite", response_model=WorkspaceInvitationResponse)
 async def invite_to_workspace(
     workspace_id: UUID, 
@@ -58,6 +84,8 @@ async def invite_to_workspace(
     )
 
     return new_invite
+
+
 
 
 @router.get("/workspaces/invitations/{token}", response_model=WorkspaceInvitationResponse)
