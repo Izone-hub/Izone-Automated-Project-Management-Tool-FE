@@ -24,12 +24,16 @@ import {
 interface CardModalProps {
   card: CardType;
   onUpdate: (data: any) => Promise<void>;
+  onDelete?: () => Promise<void>;
+  onDuplicate?: () => Promise<void>;
   onClose: () => void;
 }
 
 export const CardModal: React.FC<CardModalProps> = ({
   card,
   onUpdate,
+  onDelete,
+  onDuplicate,
   onClose,
 }) => {
   const [title, setTitle] = useState(card.title);
@@ -98,12 +102,28 @@ export const CardModal: React.FC<CardModalProps> = ({
 
   const handleDelete = async () => {
     try {
-      await onUpdate({ _delete: true }); // Special flag for delete
+      if (onDelete) {
+        await onDelete();
+      } else {
+        await onUpdate({ _delete: true }); // Special flag for delete
+      }
       toast.success('Card deleted successfully');
       onClose();
     } catch (error) {
       console.error('Failed to delete card:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to delete card');
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (!onDuplicate) return;
+    try {
+      await onDuplicate();
+      toast.success('Card duplicated successfully');
+      onClose();
+    } catch (error) {
+      console.error('Failed to duplicate card:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to duplicate card');
     }
   };
 
@@ -271,6 +291,16 @@ export const CardModal: React.FC<CardModalProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Actions / Duplication */}
+            {onDuplicate && (
+              <button
+                onClick={handleDuplicate}
+                className="w-full flex items-center justify-center gap-2 p-3 border border-border rounded-lg text-foreground hover:bg-accent transition-colors"
+              >
+                Copy Card
+              </button>
+            )}
           </div>
         </div>
 

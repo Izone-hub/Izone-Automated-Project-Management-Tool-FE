@@ -42,7 +42,7 @@
 //         Full_Name: `${firstName} ${lastName}`,
 //         password, 
 //       };
-      
+
 //       await signup(signupData);
 //     } catch (error) {
 //       // Error is handled by useAuth hook
@@ -64,7 +64,7 @@
 //           />
 //         </div>
 //       </div>
-      
+
 //       {/* Form Section */}
 //       <div className="flex items-center justify-center p-4 md:p-8">
 //         <div className="bg-white rounded-2xl p-8 space-y-6 w-full max-w-lg">
@@ -251,9 +251,9 @@ export default function SignupPage() {
       const signupData: SignupData = {
         email,
         Full_Name: `${firstName} ${lastName}`,
-        password, 
+        password,
       };
-       
+
       await signup(signupData);
     } catch (error) {
       // Error is handled by useAuth hook
@@ -266,7 +266,7 @@ export default function SignupPage() {
       <div className="hidden md:flex items-center justify-center p-4">
         <div className="relative w-full h-full min-h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
           <Image
-            src="/mask-group.png" 
+            src="/mask-group.png"
             alt="Signup Illustration"
             fill
             className="object-cover"
@@ -275,10 +275,10 @@ export default function SignupPage() {
           />
         </div>
       </div>
-      
+
       {/* Form Section */}
       <div className="flex items-center justify-center p-4 md:p-8">
-        <div className="bg-white rounded-2xl p-8 space-y-6 w-full max-w-lg">
+        <div className="bg-card text-card-foreground border shadow-sm rounded-2xl p-8 space-y-6 w-full max-w-lg">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Create your Account</h1>
             <p className="text-muted-foreground">Sign up to get started</p>
@@ -388,8 +388,8 @@ export default function SignupPage() {
 
           <div className="text-center text-sm mt-4">
             Already have an account?{" "}
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className="text-blue-600 hover:text-blue-700 hover:underline transition-colors"
               prefetch={true}
             >

@@ -27,6 +27,7 @@ interface CardModalProps {
   listId: string;
   onClose: () => void;
   updateCard: (boardId: string, listId: string, cardId: string, updates: any) => Promise<void>;
+  duplicateCard?: (boardId: string, listId: string, cardId: string) => Promise<void>;
 }
 
 const priorityColors = {
@@ -42,7 +43,8 @@ export default function CardModal({
   boardId,
   listId,
   onClose,
-  updateCard
+  updateCard,
+  duplicateCard
 }: CardModalProps) {
   // State definitions that were missing or placeholder
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -546,7 +548,20 @@ export default function CardModal({
               </button>
 
               {/* Copy */}
-              <button className="w-full flex items-center gap-3 px-3 py-2 text-left bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium text-gray-700 transition-colors mt-2">
+              <button
+                onClick={async () => {
+                  if (duplicateCard) {
+                    try {
+                      await duplicateCard(boardId, listId, card.id);
+                      toast.success('Card duplicated');
+                      onClose();
+                    } catch (error) {
+                      toast.error('Failed to duplicate card');
+                    }
+                  }
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 text-left bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium text-gray-700 transition-colors mt-2"
+              >
                 <Copy className="w-4 h-4" />
                 <span>Copy</span>
               </button>

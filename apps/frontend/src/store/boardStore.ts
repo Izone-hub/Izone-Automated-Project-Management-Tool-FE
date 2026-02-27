@@ -47,6 +47,7 @@ interface BoardStore {
   addCard: (boardId: string, listId: string, title: string) => Promise<void>;
   updateCard: (boardId: string, listId: string, cardId: string, updates: Partial<Card>) => Promise<void>;
   removeCard: (boardId: string, listId: string, cardId: string) => Promise<void>;
+  duplicateCard: (boardId: string, listId: string, cardId: string) => Promise<void>;
 
   getWorkspaceBoards: (workspaceId: string) => BoardWithLists[];
   getWorkspaceBoardCount: (workspaceId: string) => number;
@@ -430,6 +431,31 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
           boards: state.boards.map(b => b.id === boardId ? previousBoard : b)
         }));
       }
+    }
+  },
+
+  duplicateCard: async (boardId: string, listId: string, cardId: string) => {
+    // We can't optimistically generate an ID reliably without backend sync first, 
+    // but we can pessimistic update by fetching the new card right after duplication.
+    try {
+      const newApiCard = await cardsAPI.duplicateCard(listId, cardId);
+      const newCard = mapApiCardToCard(newApiCard, boardId);
+
+      set((state: BoardStore) => ({
+        boards: state.boards.map((b: BoardWithLists) => {
+          if (b.id !== boardId) return b;
+          return {
+            ...b,
+            lists: b.lists?.map((l: List) => (l.id === listId ? {
+              ...l,
+              cards: [...(l.cards || []), newCard]
+            } : l)),
+          };
+        }),
+      }));
+    } catch (error) {
+      console.error("Backend duplicate card failed:", error);
+      throw error;
     }
   },
 

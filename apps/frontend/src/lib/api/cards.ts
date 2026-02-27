@@ -181,4 +181,38 @@ export const cardsAPI = {
       throw error;
     }
   },
+
+  // Duplicate a card
+  async duplicateCard(listId: string, cardId: string): Promise<Card> {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/lists/${listId}/cards/${cardId}/duplicate`,
+        {
+          method: "POST",
+          headers: getHeaders(),
+        }
+      );
+
+      if (res.status === 401) {
+        localStorage.removeItem("auth_token");
+        throw new Error("Session expired. Please login again.");
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed to duplicate card: ${res.statusText}`);
+      }
+
+      const c = await res.json();
+      return {
+        ...c,
+        id: ensureStringId(c.id),
+        list_id: ensureStringId(c.list_id),
+        created_by: ensureStringId(c.created_by)
+      };
+    } catch (error) {
+      console.error("Error duplicating card:", error);
+      throw error;
+    }
+  },
 };

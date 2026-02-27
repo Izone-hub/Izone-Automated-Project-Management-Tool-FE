@@ -17,6 +17,7 @@ interface ListComponentProps {
   onAddCard: (title: string) => Promise<any>;
   onUpdateCard: (cardId: string, data: any) => Promise<any>;
   onDeleteCard: (cardId: string) => Promise<void>;
+  onDuplicateCard: (cardId: string) => Promise<void>;
   onUpdateList: (data: { title?: string; position?: number }) => Promise<any>;
   onDeleteList: () => Promise<void>;
 }
@@ -26,6 +27,7 @@ export const ListComponent: React.FC<ListComponentProps> = ({
   onAddCard,
   onUpdateCard,
   onDeleteCard,
+  onDuplicateCard,
   onUpdateList,
   onDeleteList,
 }) => {
@@ -187,6 +189,8 @@ export const ListComponent: React.FC<ListComponentProps> = ({
         <CardModal
           card={activeCard}
           onUpdate={(data) => handleCardUpdate(activeCard.id, data)}
+          onDelete={() => onDeleteCard(activeCard.id)}
+          onDuplicate={() => onDuplicateCard(activeCard.id)}
           onClose={() => setActiveCard(null)}
         />
       )}
