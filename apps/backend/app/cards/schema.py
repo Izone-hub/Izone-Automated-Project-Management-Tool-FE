@@ -32,5 +32,6 @@ class CardResponse(CardBase):
     created_by: Optional[UUID]
     created_at: datetime
     updated_at: Optional[datetime]
+    comment_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)

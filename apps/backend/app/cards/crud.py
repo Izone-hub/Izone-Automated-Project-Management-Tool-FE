@@ -30,16 +30,22 @@ def create_card(
 
 
 def get_cards_by_list(db: Session, list_id: str):
-    return (
+    cards = (
         db.query(Card)
         .filter(Card.list_id == list_id)
         .order_by(Card.position)
         .all()
     )
+    for card in cards:
+        card.comment_count = len(card.comments)
+    return cards
 
 
 def get_card(db: Session, card_id: str):
-    return db.query(Card).filter(Card.id == card_id).first()
+    card = db.query(Card).filter(Card.id == card_id).first()
+    if card:
+        card.comment_count = len(card.comments)
+    return card
 
 
 def update_card(db: Session, card_id: str, data: CardUpdate):

@@ -86,7 +86,7 @@ export const CardItem = ({
           {/* Due Date */}
           {card.due_date && (
             <div className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${isOverdue() ? 'bg-red-50 text-red-600' :
-                isDueSoon() ? 'bg-yellow-50 text-yellow-600' : 'hover:bg-gray-100'
+              isDueSoon() ? 'bg-yellow-50 text-yellow-600' : 'hover:bg-gray-100'
               }`}>
               <Clock className="w-3 h-3" />
               <span>{formatDate(card.due_date)}</span>
@@ -101,10 +101,10 @@ export const CardItem = ({
           )}
 
           {/* Comments Count */}
-          {comments.length > 0 && (
+          {card.comment_count > 0 && (
             <div className="flex items-center gap-1 text-xs">
               <MessageSquare className="w-3 h-3" />
-              <span>{comments.length}</span>
+              <span>{card.comment_count}</span>
             </div>
           )}
 

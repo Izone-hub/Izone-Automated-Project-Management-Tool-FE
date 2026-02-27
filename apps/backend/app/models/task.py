@@ -40,3 +40,4 @@ class Task(Base):
     assignee = relationship("User", foreign_keys=[assignee_id])
     creator = relationship("User", foreign_keys=[created_by])
     time_entries = relationship("TimeEntry", back_populates="task", cascade="all, delete-orphan")
+    comments = relationship("Comment", backref="task_ref", cascade="all, delete-orphan")

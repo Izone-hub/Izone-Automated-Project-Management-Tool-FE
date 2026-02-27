@@ -55,12 +55,17 @@ def create_task(db: Session, data: TaskCreate, user_id: str) -> Task:
 
 # ---------- Read ----------
 def get_task(db: Session, task_id: str) -> Task:
-    return _task_exists(db, task_id)
+    task = _task_exists(db, task_id)
+    task.comment_count = len(task.comments)
+    return task
 
 
 def list_tasks(db: Session, project_id: str):
     _project_exists(db, project_id)
-    return db.query(Task).filter(Task.project_id == project_id).order_by(Task.position.asc()).all()
+    tasks = db.query(Task).filter(Task.project_id == project_id).order_by(Task.position.asc()).all()
+    for task in tasks:
+        task.comment_count = len(task.comments)
+    return tasks
 
 
 # ---------- Update ----------

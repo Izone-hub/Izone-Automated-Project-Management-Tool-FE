@@ -12,6 +12,7 @@ export interface Card {
   created_by: string;
   created_at: string;
   updated_at: string;
+  comment_count: number;
 }
 
 export interface CreateCardData {

@@ -48,6 +48,7 @@ class TaskOut(TaskBase):
     created_by: UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
+    comment_count: int = 0
     
     class Config:
          from_attributes = True

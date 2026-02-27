@@ -52,17 +52,22 @@ def create_project(db: Session, data: ProjectCreate, user_id: str) -> Project:
 
 # ---------- Read ----------
 def get_project(db: Session, project_id: str) -> Project:
-    return _project_exists(db, project_id)
+    project = _project_exists(db, project_id)
+    project.comment_count = sum(len(task.comments) for task in project.tasks)
+    return project
 
 
 def list_projects(db: Session, workspace_id: str):
     _workspace_exists(db, workspace_id)
-    return (
+    projects = (
         db.query(Project)
         .filter(Project.workspace_id == workspace_id)
         .order_by(Project.created_at.desc())
         .all()
     )
+    for project in projects:
+        project.comment_count = sum(len(task.comments) for task in project.tasks)
+    return projects
 
 
 # ---------- Update ----------

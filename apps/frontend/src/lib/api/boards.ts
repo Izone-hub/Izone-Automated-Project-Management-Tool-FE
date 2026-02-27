@@ -192,6 +192,7 @@ export interface Board {
   archived: boolean;
   created_at: string;
   updated_at: string;
+  comment_count: number;
   title?: string;
   color?: string;
   background?: string;

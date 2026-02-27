@@ -27,6 +27,7 @@ class ProjectOut(ProjectBase):
     archived: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
+    comment_count: int = 0
 
     class Config:
         orm_mode = True
