@@ -85,17 +85,17 @@ export default function CommentItem({ comment, onEdit, onDelete }: CommentItemPr
         ) : (
           <>
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-gray-800 text-sm">{comment.author_name || "Anonymous"}</span>
-              <span className="text-xs text-gray-400">{formatDate(comment.created_at)}</span>
+              <span className="font-medium text-foreground text-sm">{comment.author_name || "Anonymous"}</span>
+              <span className="text-xs text-muted-foreground">{formatDate(comment.created_at)}</span>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 group relative">
-              <p className="text-gray-700 text-sm whitespace-pre-wrap">{comment.content}</p>
+            <div className="bg-muted/50 rounded-lg p-3 group relative border border-border">
+              <p className="text-foreground text-sm whitespace-pre-wrap">{comment.content}</p>
 
               {/* Action buttons - appear on hover */}
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-blue-600 transition-colors"
+                  className="p-1 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors"
                   title="Edit"
                 >
                   <Edit2 className="w-3 h-3" />
@@ -105,7 +105,7 @@ export default function CommentItem({ comment, onEdit, onDelete }: CommentItemPr
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
                       title="Delete"
                     >
                       <Trash2 className="w-3 h-3" />

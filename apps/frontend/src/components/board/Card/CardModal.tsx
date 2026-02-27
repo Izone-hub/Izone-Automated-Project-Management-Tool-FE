@@ -133,10 +133,10 @@ export const CardModal: React.FC<CardModalProps> = ({
   };
 
   const priorityOptions: { value: CardType['priority']; label: string; color: string }[] = [
-    { value: 'low', label: 'Low', color: 'bg-green-100 text-green-800' },
-    { value: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-800' },
-    { value: 'high', label: 'High', color: 'bg-red-100 text-red-800' },
-    { value: 'urgent', label: 'Urgent', color: 'bg-purple-100 text-purple-800' },
+    { value: 'low', label: 'Low', color: 'bg-green-500/10 text-green-600 dark:text-green-400 dark:bg-green-500/20' },
+    { value: 'medium', label: 'Medium', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-500/20' },
+    { value: 'high', label: 'High', color: 'bg-red-500/10 text-red-600 dark:text-red-400 dark:bg-red-500/20' },
+    { value: 'urgent', label: 'Urgent', color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 dark:bg-purple-500/20' },
   ];
 
   return (
@@ -145,22 +145,22 @@ export const CardModal: React.FC<CardModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"
+        className="bg-card rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b">
+        <div className="flex items-start justify-between p-6 border-b border-border">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="text-2xl font-bold bg-transparent border-none focus:outline-none w-full"
+                className="text-2xl font-bold bg-transparent border-none focus:outline-none w-full text-foreground"
                 placeholder="Card title"
               />
             </div>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
               {card.created_at && (
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
@@ -177,7 +177,7 @@ export const CardModal: React.FC<CardModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground hover:text-foreground"
           >
             <X className="w-6 h-6" />
           </button>
@@ -189,14 +189,14 @@ export const CardModal: React.FC<CardModalProps> = ({
           <div className="lg:col-span-2 space-y-6">
             {/* Description */}
             <div>
-              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                 <span>Description</span>
               </h3>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add a more detailed description..."
-                className="w-full p-3 border rounded-lg min-h-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border border-input rounded-lg min-h-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                 rows={4}
               />
             </div>
@@ -207,13 +207,13 @@ export const CardModal: React.FC<CardModalProps> = ({
 
           {/* Right Column - Actions */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-gray-700">Add to card</h3>
+            <h3 className="font-semibold text-foreground">Add to card</h3>
 
 
 
             {/* Due Date */}
-            <div className="p-3 border rounded-lg">
-              <h4 className="font-medium mb-2 flex items-center gap-2">
+            <div className="p-3 border border-border rounded-lg">
+              <h4 className="font-medium mb-2 flex items-center gap-2 text-foreground">
                 <Calendar className="w-4 h-4" />
                 <span>Due Date</span>
               </h4>
@@ -221,19 +221,19 @@ export const CardModal: React.FC<CardModalProps> = ({
                 type="datetime-local"
                 value={dueDate ? dueDate.slice(0, 16) : ''}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full p-2 border rounded mb-2"
+                className="w-full p-2 border border-input bg-background text-foreground rounded mb-2"
               />
             </div>
 
             {/* Priority */}
-            <div className="p-3 border rounded-lg">
-              <h4 className="font-medium mb-2">Priority</h4>
+            <div className="p-3 border border-border rounded-lg">
+              <h4 className="font-medium mb-2 text-foreground">Priority</h4>
               <div className="space-y-1">
                 {priorityOptions.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setPriority(option.value)}
-                    className={`w-full px-3 py-2 rounded text-left ${priority === option.value ? option.color : 'hover:bg-gray-100'}`}
+                    className={`w-full px-3 py-2 rounded text-left transition-colors ${priority === option.value ? option.color : 'hover:bg-accent text-muted-foreground'}`}
                   >
                     {option.label}
                   </button>
@@ -242,24 +242,24 @@ export const CardModal: React.FC<CardModalProps> = ({
             </div>
 
             {/* Attachments */}
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border border-border rounded-lg overflow-hidden">
               <button
                 onClick={() => setShowAttachments(!showAttachments)}
-                className="w-full flex items-center justify-between gap-3 p-3 text-left hover:bg-gray-100"
+                className="w-full flex items-center justify-between gap-3 p-3 text-left hover:bg-accent transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <Paperclip className="w-5 h-5 text-gray-500" />
-                  <span>Attachments</span>
+                  <Paperclip className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-foreground">Attachments</span>
                 </div>
                 {attachments.length > 0 && (
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  <span className="text-xs bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full border border-blue-500/20">
                     {attachments.length}
                   </span>
                 )}
               </button>
 
               {showAttachments && (
-                <div className="p-3 border-t space-y-3">
+                <div className="p-3 border-t border-border space-y-3">
                   <FileUploader
                     onUpload={handleFileUpload}
                     disabled={isUploading}
@@ -275,7 +275,7 @@ export const CardModal: React.FC<CardModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t flex justify-between">
+        <div className="p-6 border-t border-border flex justify-between bg-muted/30">
           <div className="flex gap-2">
             <button
               onClick={handleSave}
@@ -315,7 +315,7 @@ export const CardModal: React.FC<CardModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-input text-foreground rounded-lg hover:bg-accent transition-colors"
           >
             Close
           </button>

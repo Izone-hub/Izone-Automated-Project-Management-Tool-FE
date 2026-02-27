@@ -23,8 +23,8 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="flex justify-center items-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
       </div>
     );
   }
@@ -48,22 +48,22 @@ export default function DashboardPage() {
   // as it's not used in the current code
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Rest of your JSX remains exactly the same */}
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 mb-6">
+      <div className="bg-background border-b border-border mb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Your Workspaces</h1>
-              <p className="text-gray-600 text-sm mt-1">
+              <h1 className="text-2xl font-bold text-foreground">Your Workspaces</h1>
+              <p className="text-muted-foreground text-sm mt-1">
                 Manage all your workspaces and projects
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={reload}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh
@@ -90,14 +90,14 @@ export default function DashboardPage() {
         )}
 
         {workspaces.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+          <div className="text-center py-12 bg-card rounded-lg border border-border">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full mb-4">
+              <svg className="w-8 h-8 text-muted-foreground" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14H7v-2h4v2zm0-6H7v-2h4v4zm0-6H7V7h4v4zm6 12h-4v-2h4v2zm0-6h-4v-2h4v2zm0-6h-4V7h4v4z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-800 mb-2">No workspaces yet</h3>
-            <p className="text-gray-600 mb-6">Create your first workspace to start organizing your projects</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">No workspaces yet</h3>
+            <p className="text-muted-foreground mb-6">Create your first workspace to start organizing your projects</p>
             <button
               onClick={() => setShowForm(true)}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"

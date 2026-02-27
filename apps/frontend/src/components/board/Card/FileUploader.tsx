@@ -69,7 +69,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             onClick={() => !disabled && fileInputRef.current?.click()}
             className={`
         border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all
-        ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
+        ${isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-border hover:border-muted-foreground'}
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
       `}
         >
@@ -81,11 +81,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 className="hidden"
                 disabled={disabled}
             />
-            <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-            <p className="text-sm text-gray-600">
-                <span className="font-semibold text-blue-600">Click to upload</span> or drag and drop
+            <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-sm text-foreground">
+                <span className="font-semibold text-blue-500">Click to upload</span> or drag and drop
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
                 Maximum file size: {maxSizeMB}MB
             </p>
         </div>
