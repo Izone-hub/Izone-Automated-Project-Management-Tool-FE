@@ -59,3 +59,4 @@ class Card(Base):
     )
 
     comments = relationship("Comment", back_populates="card", cascade="all, delete-orphan")
+    time_entries = relationship("CardTimeEntry", back_populates="card", cascade="all, delete-orphan")

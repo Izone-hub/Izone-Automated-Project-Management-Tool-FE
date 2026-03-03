@@ -8,6 +8,7 @@ import { boardsAPI } from '@/lib/api/boards';
 import { BoardCard } from '@/components/boards/BoardCard';
 import { CreateBoard } from '@/components/boards/CreateBoard';
 import { Search, Filter, Grid, List, Archive, Star, Plus, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function BoardsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,6 +21,7 @@ export default function BoardsPage() {
   // Get boards from store
   const boards = useBoardStore((state) => state.boards);
   const addBoard = useBoardStore((state) => state.addBoard);
+  const deleteBoard = useBoardStore((state) => state.deleteBoard);
   const { workspaces, loading: workspacesLoading, reload: reloadWorkspaces } = useWorkspaces();
 
   // Function to fetch all boards from all workspaces
@@ -88,6 +90,16 @@ export default function BoardsPage() {
       await fetchAllBoards();
     } catch (error) {
       console.error('Failed to create board:', error);
+    }
+  };
+
+  const handleDeleteBoard = async (boardId: string) => {
+    try {
+      await deleteBoard(boardId);
+      toast.success('Board deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete board:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete board');
     }
   };
 
@@ -256,7 +268,7 @@ export default function BoardsPage() {
             : 'space-y-3'
           }>
             {filteredBoards.map((board) => (
-              <BoardCard key={board.id} board={board} />
+              <BoardCard key={board.id} board={board} onDelete={handleDeleteBoard} />
             ))}
 
             {/* Add New Board Card */}

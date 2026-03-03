@@ -9,6 +9,7 @@ import { attachmentService } from '@/services/attachment';
 import { FileUploader } from './FileUploader';
 import { AttachmentList } from './AttachmentList';
 import CommentsList from '@/components/comments/CommentsList';
+import { TimeTracker } from './TimeTracker';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -291,6 +292,9 @@ export const CardModal: React.FC<CardModalProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Time Tracking */}
+            <TimeTracker cardId={card.id} />
 
             {/* Actions / Duplication */}
             {onDuplicate && (

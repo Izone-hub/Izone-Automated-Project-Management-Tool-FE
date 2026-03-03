@@ -52,6 +52,7 @@ interface BoardStore {
   getWorkspaceBoards: (workspaceId: string) => BoardWithLists[];
   getWorkspaceBoardCount: (workspaceId: string) => number;
   updateBoard: (boardId: string, updates: Partial<Board>) => Promise<void>;
+  deleteBoard: (boardId: string) => Promise<void>;
 }
 
 // Helper mappers
@@ -462,6 +463,22 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
   getWorkspaceBoards: (workspaceId: string) => get().boards.filter((board: BoardWithLists) => board.workspace_id === workspaceId),
 
   getWorkspaceBoardCount: (workspaceId: string) => get().boards.filter((board: BoardWithLists) => board.workspace_id === workspaceId).length,
+
+  deleteBoard: async (boardId: string) => {
+    const previousBoards = get().boards;
+    // Optimistic removal
+    set((state: BoardStore) => ({
+      boards: state.boards.filter((b: BoardWithLists) => b.id !== boardId)
+    }));
+    try {
+      await boardsAPI.deleteBoard(boardId);
+    } catch (error) {
+      console.error("Failed to delete board:", error);
+      // Revert
+      set({ boards: previousBoards });
+      throw error;
+    }
+  },
 
   updateBoard: async (boardId: string, updates: Partial<Board>) => {
     // Optimistic Update
