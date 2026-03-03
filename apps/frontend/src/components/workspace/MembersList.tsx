@@ -51,12 +51,12 @@ export function MembersList({
         return (
             <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg animate-pulse">
+                    <div key={i} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg animate-pulse">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gray-200 rounded-full" />
+                            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full" />
                             <div className="space-y-2">
-                                <div className="w-32 h-4 bg-gray-200 rounded" />
-                                <div className="w-24 h-3 bg-gray-200 rounded" />
+                                <div className="w-32 h-4 bg-gray-200 dark:bg-gray-700 rounded" />
+                                <div className="w-24 h-3 bg-gray-200 dark:bg-gray-700 rounded" />
                             </div>
                         </div>
                     </div>
@@ -67,7 +67,7 @@ export function MembersList({
 
     if (members.length === 0) {
         return (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>No members in this workspace yet.</p>
             </div>
@@ -84,21 +84,21 @@ export function MembersList({
                 return (
                     <div
                         key={member.user_id}
-                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 active:bg-gray-100 active:scale-[0.99] transition-all duration-200 cursor-pointer select-none touch-none"
+                        className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-[0.99] transition-all duration-200 cursor-pointer select-none touch-none"
                     >
                         <div className="flex items-center gap-3">
                             {/* Avatar placeholder */}
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-300 font-semibold">
                                 {(member.email || member.user_id).slice(0, 2).toUpperCase()}
                             </div>
 
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <span className="font-medium text-gray-900">
+                                    <span className="font-medium text-gray-900 dark:text-gray-100">
                                         {member.email || member.user_id}
                                     </span>
                                     {isCurrentUser && (
-                                        <span className="text-xs text-gray-500">(You)</span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">(You)</span>
                                     )}
                                 </div>
                                 <div className="flex items-center gap-2 mt-1">
@@ -121,7 +121,7 @@ export function MembersList({
                                             {config.label}
                                         </Badge>
                                     )}
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">
                                         Joined {new Date(member.created_at).toLocaleDateString()}
                                     </span>
                                 </div>
