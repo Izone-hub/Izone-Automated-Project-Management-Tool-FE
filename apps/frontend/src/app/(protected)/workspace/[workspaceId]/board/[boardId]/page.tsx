@@ -86,10 +86,10 @@ export default function BoardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Loading board...</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Loading board...</h2>
         </div>
       </div>
     );
@@ -99,10 +99,10 @@ export default function BoardPage() {
   const error = storeError || localError;
   if (hasAttemptedFetch && !storeLoading && !board) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Board not found</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Board not found</h2>
+          <p className="text-muted-foreground mb-6">
             {error || "The board you're looking for doesn't exist or you don't have access."}
           </p>
           <button
@@ -118,7 +118,7 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-background">
       {/* Board Header */}
       <BoardHeader board={board!} />
 

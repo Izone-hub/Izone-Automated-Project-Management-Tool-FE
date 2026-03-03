@@ -39,24 +39,24 @@ export default function WorkspaceForm({ onSuccess }: WorkspaceFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Workspace Name *</label>
+        <label className="block text-sm font-medium text-muted-foreground">Workspace Name *</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full border rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-input rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
           placeholder="Marketing Team"
           autoFocus
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Description (Optional)</label>
+        <label className="block text-sm font-medium text-muted-foreground">Description (Optional)</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="w-full border rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full border border-input rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 resize-none bg-background text-foreground"
           placeholder="What's this workspace for?"
         />
       </div>

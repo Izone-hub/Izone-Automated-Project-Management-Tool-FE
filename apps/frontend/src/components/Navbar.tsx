@@ -37,7 +37,7 @@ export const Navbar = ({ className }: NavbarProps) => {
   };
 
   return (
-    <nav className={`sticky top-0 z-40 p-1.5 flex items-center justify-between bg-gray-100 border-b shadow-sm ${className}`}>
+    <nav className={`sticky top-0 z-40 p-1.5 flex items-center justify-between bg-background border-b border-border shadow-sm ${className}`}>
       <div className="flex items-center gap-4">
         <SidebarTrigger />
         <DynamicBreadcrumb />

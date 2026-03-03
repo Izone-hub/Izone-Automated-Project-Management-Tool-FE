@@ -7,11 +7,11 @@ import { Board } from "@/lib/types";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-export const CreateBoard = ({ 
-  onClose, 
+export const CreateBoard = ({
+  onClose,
   workspaceId: propWorkspaceId,
-  onCreate 
-}: { 
+  onCreate
+}: {
   onClose?: () => void;
   workspaceId?: string;
   onCreate?: (boardData: any) => void;
@@ -74,19 +74,19 @@ export const CreateBoard = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-      <h2 className="text-xl font-bold mb-4">Create Board</h2>
+    <form onSubmit={handleSubmit} className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full border border-border">
+      <h2 className="text-xl font-bold mb-4 text-foreground">Create Board</h2>
 
       {/* Error display */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg">
           <p className="text-sm font-medium">{error}</p>
-          <p className="text-xs mt-1">Check console for details</p>
+          <p className="text-xs mt-1 text-red-500/80">Check console for details</p>
         </div>
       )}
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-muted-foreground mb-1">
           Board Name *
         </label>
         <input
@@ -94,20 +94,20 @@ export const CreateBoard = ({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., Event Planning"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground"
           required
           disabled={isLoading}
         />
       </div>
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-muted-foreground mb-1">
           Privacy
         </label>
         <select
           value={privacy}
           onChange={(e) => setPrivacy(e.target.value as Board["privacy"])}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground"
           disabled={isLoading}
         >
           <option value="workspace">Workspace</option>
@@ -117,14 +117,14 @@ export const CreateBoard = ({
       </div>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-muted-foreground mb-1">
           Background Color
         </label>
         <input
           type="color"
           value={background}
           onChange={(e) => setBackground(e.target.value)}
-          className="w-full h-10 cursor-pointer rounded border border-gray-300"
+          className="w-full h-10 cursor-pointer rounded border border-input bg-background"
           disabled={isLoading}
         />
       </div>
@@ -152,7 +152,7 @@ export const CreateBoard = ({
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-muted disabled:opacity-50"
           >
             Cancel
           </button>

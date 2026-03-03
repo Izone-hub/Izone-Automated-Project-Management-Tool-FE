@@ -130,3 +130,25 @@ def delete_card(db: Session, card_id: str):
     db.execute(text("DELETE FROM cards WHERE id = :id"), {"id": card_id})
     db.commit()
     return True
+
+def duplicate_card(db: Session, list_id: str, card_id: str, user_id: str | None = None):
+    original_card = get_card(db, card_id)
+    if not original_card:
+        return None
+
+    count = db.query(Card).filter(Card.list_id == list_id).count()
+    
+    new_card = Card(
+        title=f"Copy of {original_card.title}",
+        description=original_card.description,
+        due_date=original_card.due_date,
+        priority=original_card.priority,
+        position=count,
+        list_id=list_id,
+        created_by=user_id
+    )
+
+    db.add(new_card)
+    db.commit()
+    db.refresh(new_card)
+    return new_card

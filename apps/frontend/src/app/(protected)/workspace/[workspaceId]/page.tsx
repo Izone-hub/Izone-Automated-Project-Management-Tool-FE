@@ -46,7 +46,7 @@ export default function WorkspaceDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
@@ -54,10 +54,10 @@ export default function WorkspaceDetailPage() {
 
   if (error || !currentWorkspace) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Workspace not found</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className="text-xl font-semibold text-foreground mb-2">Workspace not found</h2>
+          <p className="text-muted-foreground mb-4">
             {error || 'The workspace does not exist or you do not have access'}
           </p>
           <Link
@@ -72,14 +72,14 @@ export default function WorkspaceDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
 
       {/* Top nav */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </Link>
@@ -89,17 +89,17 @@ export default function WorkspaceDetailPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Workspace Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div className="bg-card rounded-lg shadow-sm border border-border mb-6">
           <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-foreground">
               {currentWorkspace.name}
             </h1>
 
             {currentWorkspace.description && (
-              <p className="text-gray-600 mt-2">{currentWorkspace.description}</p>
+              <p className="text-muted-foreground mt-2">{currentWorkspace.description}</p>
             )}
 
-            <div className="flex items-center gap-6 text-sm text-gray-500 mt-4">
+            <div className="flex items-center gap-6 text-sm text-muted-foreground mt-4">
               <div>
                 Created: {new Date(currentWorkspace.createdAt).toLocaleDateString()}
               </div>
@@ -109,7 +109,7 @@ export default function WorkspaceDetailPage() {
               </div>
               <Link
                 href={`/workspace/${workspaceId}/members`}
-                className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-foreground rounded-lg hover:bg-accent/80 transition-colors"
               >
                 <Users className="w-4 h-4" />
                 Manage Members

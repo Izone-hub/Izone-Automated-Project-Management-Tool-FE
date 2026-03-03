@@ -43,27 +43,27 @@ export default function CommentsList({ cardId }: CommentsListProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
+    <div className="bg-card rounded-lg border border-border p-4">
       {/* Header */}
-      <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <MessageSquare className="w-5 h-5 text-blue-600" />
+      <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+        <MessageSquare className="w-5 h-5 text-blue-500" />
         <span>Comments and activity</span>
         {comments.length > 0 && (
-          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{comments.length}</span>
+          <span className="text-xs bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full border border-blue-500/20">{comments.length}</span>
         )}
       </h3>
 
       {/* Add Comment Form */}
-      <div className="mb-4 pb-4 border-b border-gray-200">
+      <div className="mb-4 pb-4 border-b border-border">
         <CommentForm onSubmit={handleAddComment} isSubmitting={isSubmitting} />
       </div>
 
       {/* Error state */}
-      {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-200">{error}</div>}
+      {error && <div className="mb-4 p-3 bg-red-500/10 text-red-500 text-sm rounded-lg border border-red-500/20">{error}</div>}
 
       {/* Loading state */}
       {loading && (
-        <div className="flex items-center gap-2 py-8 justify-center text-gray-500">
+        <div className="flex items-center gap-2 py-8 justify-center text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="text-sm">Loading comments...</span>
         </div>
@@ -71,9 +71,9 @@ export default function CommentsList({ cardId }: CommentsListProps) {
 
       {/* Comments List */}
       {!loading && (
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-border">
           {comments.length === 0 ? (
-            <p className="text-gray-400 text-sm py-6 text-center">No comments yet. Be the first to comment!</p>
+            <p className="text-muted-foreground text-sm py-6 text-center">No comments yet. Be the first to comment!</p>
           ) : (
             comments.map((comment) => (
               <CommentItem

@@ -65,20 +65,20 @@ export const BoardHeader = ({ board }: { board: Board }) => {
   );
 
   return (
-    <div className="bg-white shadow-sm border-b border-gray-200 text-gray-900">
+    <div className="bg-background shadow-sm border-b border-border text-foreground">
       <div className="max-w-7xl mx-auto px-6 py-3">
         {/* Breadcrumb Navigation - Workspace Link Only */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
           {realWorkspaceId && (
             <Link
               href={`/workspace/${realWorkspaceId}`}
-              className="hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition-colors flex items-center gap-1.5 font-medium"
+              className="hover:text-foreground hover:bg-accent px-2 py-0.5 rounded transition-colors flex items-center gap-1.5 font-medium"
             >
               <Layout size={14} />
               {workspace?.name || 'Workspace'}
             </Link>
           )}
-          <ChevronRight size={14} className="text-gray-300" />
+          <ChevronRight size={14} className="text-muted-foreground/50" />
         </div>
 
         <div className="flex items-center gap-3">
@@ -90,12 +90,12 @@ export const BoardHeader = ({ board }: { board: Board }) => {
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
-              className="text-2xl md:text-3xl font-bold bg-gray-50 border-none rounded px-1 -ml-1 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 w-full max-w-lg"
+              className="text-2xl md:text-3xl font-bold bg-accent border-none rounded px-1 -ml-1 focus:outline-none focus:ring-2 focus:ring-blue-400 text-foreground w-full max-w-lg"
             />
           ) : (
             <h1
               onClick={handleTitleClick}
-              className="text-2xl md:text-3xl font-bold hover:bg-gray-50 cursor-pointer px-1 -ml-1 rounded transition-colors truncate max-w-full"
+              className="text-2xl md:text-3xl font-bold hover:bg-accent cursor-pointer px-1 -ml-1 rounded transition-colors truncate max-w-full"
             >
               {title}
             </h1>
@@ -110,14 +110,14 @@ export const BoardHeader = ({ board }: { board: Board }) => {
             Back to Workspace
           </Link>
 
-          <div className="flex items-center gap-2 text-xs font-medium text-gray-400 border-l border-gray-200 pl-3 ml-1 h-6">
-            <span className="bg-gray-50 px-2 py-0.5 rounded border border-gray-100">{lists.length} lists</span>
-            <span className="bg-gray-50 px-2 py-0.5 rounded border border-gray-100">{totalCards} cards</span>
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground border-l border-border pl-3 ml-1 h-6">
+            <span className="bg-accent px-2 py-0.5 rounded border border-border">{lists.length} lists</span>
+            <span className="bg-accent px-2 py-0.5 rounded border border-border">{totalCards} cards</span>
           </div>
         </div>
 
         {safeBoard.description && (
-          <p className="text-gray-600 mt-1 text-sm max-w-2xl line-clamp-1">{safeBoard.description}</p>
+          <p className="text-muted-foreground mt-1 text-sm max-w-2xl line-clamp-1">{safeBoard.description}</p>
         )}
       </div>
     </div>

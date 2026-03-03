@@ -116,9 +116,9 @@ export default function WorkspaceMembersPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200">
+            <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex items-center gap-4 mb-4">
                         <Button
@@ -133,14 +133,14 @@ export default function WorkspaceMembersPage() {
                     </div>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <Users className="w-5 h-5 text-blue-600" />
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">
+                                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                     Workspace Members
                                 </h1>
-                                <p className="text-gray-600 text-sm">
+                                <p className="text-gray-600 dark:text-gray-400 text-sm">
                                     {workspace?.name || "Loading..."}
                                 </p>
                             </div>
@@ -166,14 +166,14 @@ export default function WorkspaceMembersPage() {
             {/* Content */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                    <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg">
                         {error}
                     </div>
                 )}
 
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-semibold text-gray-900">
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                             Members ({members.length})
                         </h2>
                     </div>
@@ -193,15 +193,15 @@ export default function WorkspaceMembersPage() {
                     />
 
                     {!isAdmin && (
-                        <div className="mt-6 p-4 bg-gray-50 rounded-lg text-center text-gray-600 text-sm">
+                        <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-center text-gray-600 dark:text-gray-400 text-sm">
                             Only workspace admins can add or remove members.
                         </div>
                     )}
                 </div>
 
                 {/* Info notice */}
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-800 text-sm">
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p className="text-blue-800 dark:text-blue-300 text-sm">
                         <strong>Note:</strong> To add a member, you need their registered Email Address.
                         Ask them to share the email they used to sign up.
                     </p>

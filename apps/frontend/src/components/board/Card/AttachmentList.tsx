@@ -61,7 +61,7 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
 
     if (attachments.length === 0) {
         return (
-            <div className="text-center py-4 text-gray-500 text-sm">
+            <div className="text-center py-4 text-muted-foreground text-sm">
                 No attachments yet
             </div>
         );
@@ -77,7 +77,7 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
                 return (
                     <div
                         key={attachment.id}
-                        className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors group"
+                        className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-muted/50 transition-colors group"
                     >
                         {/* File Icon or Image Preview */}
                         {mimeType.startsWith('image/') ? (
@@ -92,21 +92,21 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
                                 }}
                             />
                         ) : (
-                            <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded">
+                            <div className="w-12 h-12 flex items-center justify-center bg-muted rounded">
                                 {getFileIcon(mimeType)}
                             </div>
                         )}
                         {/* Fallback icon container (hidden by default, shown on error) */}
-                        <div className="hidden w-12 h-12 items-center justify-center bg-gray-100 rounded">
+                        <div className="hidden w-12 h-12 items-center justify-center bg-muted rounded">
                             {getFileIcon(mimeType)}
                         </div>
 
                         {/* File Info */}
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="text-sm font-medium text-foreground truncate">
                                 {fileName}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                                 {formatFileSize(attachment.size)}
                                 {attachment.uploaded_at && (
                                     <span className="ml-2">
@@ -123,15 +123,15 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
                                 download={fileName}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-1 hover:bg-gray-200 rounded"
+                                className="p-1 hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
                                 title="Download"
                             >
-                                <Download className="w-4 h-4 text-gray-600" />
+                                <Download className="w-4 h-4" />
                             </a>
                             <button
                                 onClick={() => handleDelete(attachment.id, fileName)}
                                 disabled={isDeleting}
-                                className="p-1 hover:bg-red-100 rounded disabled:opacity-50"
+                                className="p-1 hover:bg-red-500/10 rounded disabled:opacity-50 transition-colors"
                                 title="Delete"
                             >
                                 <X className="w-4 h-4 text-red-600" />

@@ -273,6 +273,28 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     }
   };
 
+  const handleDuplicateCard = async (listId: string, cardId: string) => {
+    try {
+      setError(null);
+      const duplicatedCard = await cardsAPI.duplicateCard(listId, cardId);
+
+      setLists(lists.map(list => {
+        if (list.id === listId) {
+          return {
+            ...list,
+            cards: [...(list.cards || []), duplicatedCard],
+          };
+        }
+        return list;
+      }));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to duplicate card';
+      setError(errorMessage);
+      console.error('Error duplicating card:', err);
+      throw err;
+    }
+  };
+
   const handleRetry = () => {
     setError(null);
     fetchLists();
@@ -586,6 +608,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
                 onAddCard={(title) => handleAddCard(list.id, title)}
                 onUpdateCard={(cardId, data) => handleUpdateCard(list.id, cardId, data)}
                 onDeleteCard={(cardId) => handleDeleteCard(list.id, cardId)}
+                onDuplicateCard={(cardId) => handleDuplicateCard(list.id, cardId)}
                 onUpdateList={(data) => handleUpdateList(list.id, data)}
                 onDeleteList={() => handleDeleteList(list.id)}
               />
@@ -602,6 +625,7 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
                 onAddCard={async () => { }}
                 onUpdateCard={async () => { }}
                 onDeleteCard={async () => { }}
+                onDuplicateCard={async () => { }}
                 onUpdateList={async () => { }}
                 onDeleteList={async () => { }}
               />

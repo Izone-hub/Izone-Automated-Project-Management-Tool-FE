@@ -57,11 +57,11 @@ export const CardComponent: React.FC<CardComponentProps> = ({
 
   const getPriorityColor = () => {
     switch (card.priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'urgent': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-red-500/10 text-red-600 dark:text-red-400 dark:bg-red-500/20';
+      case 'medium': return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-500/20';
+      case 'low': return 'bg-green-500/10 text-green-600 dark:text-green-400 dark:bg-green-500/20';
+      case 'urgent': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 dark:bg-purple-500/20';
+      default: return 'bg-secondary text-muted-foreground';
     }
   };
 
@@ -73,10 +73,10 @@ export const CardComponent: React.FC<CardComponentProps> = ({
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) return { text: 'Overdue', color: 'text-red-600' };
-    if (diffDays === 0) return { text: 'Today', color: 'text-orange-600' };
-    if (diffDays === 1) return { text: 'Tomorrow', color: 'text-yellow-600' };
-    if (diffDays <= 7) return { text: 'This week', color: 'text-blue-600' };
+    if (diffDays < 0) return { text: 'Overdue', color: 'text-red-600 dark:text-red-400' };
+    if (diffDays === 0) return { text: 'Today', color: 'text-orange-600 dark:text-orange-400' };
+    if (diffDays === 1) return { text: 'Tomorrow', color: 'text-yellow-600 dark:text-yellow-400' };
+    if (diffDays <= 7) return { text: 'This week', color: 'text-blue-600 dark:text-blue-400' };
     return null;
   };
 
@@ -84,7 +84,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
 
   return (
     <div
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-shadow cursor-pointer group"
+      className="bg-card rounded-lg shadow-sm border border-border p-3 hover:shadow-md transition-shadow cursor-pointer group"
       onClick={() => onClick?.()}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
@@ -97,7 +97,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
             onChange={(e) => setTempTitle(e.target.value)}
             onBlur={handleTitleUpdate}
             onKeyDown={(e) => e.key === 'Enter' && handleTitleUpdate()}
-            className="w-full px-2 py-1 border rounded text-sm"
+            className="w-full px-2 py-1 border border-input rounded text-sm bg-background text-foreground"
             autoFocus
           />
           <div className="flex gap-2">
@@ -112,7 +112,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
                 setIsEditing(false);
                 setTempTitle(card.title);
               }}
-              className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs"
+              className="px-2 py-1 bg-secondary text-secondary-foreground rounded text-xs"
             >
               Cancel
             </button>
@@ -121,7 +121,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
       ) : (
         <>
           <div className="flex justify-between items-start mb-2">
-            <p className="font-medium text-gray-800 text-sm flex-1">{card.title}</p>
+            <p className="font-medium text-foreground text-sm flex-1">{card.title}</p>
 
             {showActions && (
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -130,9 +130,9 @@ export const CardComponent: React.FC<CardComponentProps> = ({
                     e.stopPropagation();
                     setIsEditing(true);
                   }}
-                  className="p-1 hover:bg-gray-100 rounded"
+                  className="p-1 hover:bg-muted rounded"
                 >
-                  <Edit2 className="w-3 h-3 text-gray-500" />
+                  <Edit2 className="w-3 h-3 text-muted-foreground" />
                 </button>
 
                 <AlertDialog>
@@ -172,7 +172,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
           {/* Card Details */}
           <div className="space-y-2">
             {card.description && (
-              <p className="text-xs text-gray-600 line-clamp-2">
+              <p className="text-xs text-muted-foreground line-clamp-2">
                 {card.description}
               </p>
             )}
@@ -187,7 +187,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
 
               {/* Due Date */}
               {card.due_date && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Calendar className="w-3 h-3" />
                   <span>{new Date(card.due_date).toLocaleDateString()}</span>
                   {dueStatus && (

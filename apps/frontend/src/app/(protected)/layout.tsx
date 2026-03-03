@@ -22,7 +22,7 @@ export default async function DashboardLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <Navbar className="bg-white shadow-md" />
+          <Navbar />
           <div className="flex-1 p-0">
             {children}
           </div>

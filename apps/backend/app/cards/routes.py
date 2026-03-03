@@ -49,3 +49,15 @@ def delete_card(
     deleted = crud.delete_card(db, card_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Card not found")
+
+@router.post("/{card_id}/duplicate", response_model=CardResponse, status_code=status.HTTP_201_CREATED)
+def duplicate_card(
+    list_id: str,
+    card_id: str,
+    db: Session = Depends(get_db)
+):
+    # Depending on auth, user_id could be extracted from a `current_user` dependency
+    new_card = crud.duplicate_card(db, list_id, card_id)
+    if not new_card:
+        raise HTTPException(status_code=404, detail="Original card not found")
+    return new_card
