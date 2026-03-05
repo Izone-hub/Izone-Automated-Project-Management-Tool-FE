@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -39,15 +38,15 @@ export default function LoginPage() {
   };
 
   const handleClickSignUp = () => {
-    console.log('clickSignUp');
+    console.log("clickSignUp");
     try {
-      router.push('/signup');
+      router.push("/signup");
       return true;
     } catch (error) {
-      console.error('error in clickSignUp', error);
+      console.error("error in clickSignUp", error);
       return false;
     }
-  }
+  };
 
   return (
     <div className="grid md:grid-cols-2 gap-0 min-h-screen">
@@ -70,7 +69,9 @@ export default function LoginPage() {
         <div className="bg-card text-card-foreground border shadow-sm rounded-2xl p-8 space-y-6 w-full max-w-lg">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Welcome Back!</h1>
-            <p className="text-muted-foreground">Sign in to your account to continue</p>
+            <p className="text-muted-foreground">
+              Sign in to your account to continue
+            </p>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
@@ -110,7 +111,9 @@ export default function LoginPage() {
                 </Button>
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -121,7 +124,10 @@ export default function LoginPage() {
                   Remember me
                 </Label>
               </div>
-              <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-blue-600 hover:underline"
+              >
                 Forgot Password?
               </Link>
             </div>
@@ -139,14 +145,18 @@ export default function LoginPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+            >
               <Github className="h-4 w-4" /> Github
             </Button>
             <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-2"
               onClick={() => {
-                const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                const base =
+                  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
                 window.location.href = `${base}/auth/google/login`;
               }}
             >
@@ -168,7 +178,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-
-
-
